@@ -39,8 +39,8 @@ All additional worktrees will also be created under the root folder.
 
 ```
                 ┌───────────────────────────┐
-                │        .bare repo          │
-                │  (Git metadata & objects)  │
+                │        .bare repo         │
+                │  (Git metadata & objects) │
                 └─────────────┬─────────────┘
                               │
      ┌────────────────────────┼────────────────────────┐
@@ -93,7 +93,7 @@ All additional worktrees will also be created under the root folder.
 ### **Branch‑Only Mode**
 ```
 ┌──────────────────────────────────────┐
-│ Start: --new-branch <branch> [base]   │
+│ Start: --new-branch <branch> [base]  │
 └───────────────────┬──────────────────┘
                     ▼
          Fetch all branches
@@ -116,10 +116,10 @@ All additional worktrees will also be created under the root folder.
 ```
           GitHub Remote (origin)
         ┌────────────────────────┐
-        │  origin/main            │
-        │  origin/feature-x       │
-        │  origin/bugfix-y        │
-        └───────────┬─────────────┘
+        │  origin/main           │
+        │  origin/feature-x      │
+        │  origin/bugfix-y       │
+        └───────────┬────────────┘
                     │ fetch/push
                     ▼
            ┌─────────────────┐
