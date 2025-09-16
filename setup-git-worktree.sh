@@ -1,25 +1,68 @@
 #!/usr/bin/env bash
 #
-# setup-git-worktree.sh
+# git-worktree-manager.sh
 #
-# Usage:
-#   ./setup-git-worktree.sh <repo-url>
+# Modes:
+#   1. Full setup:
+#        ./git-worktree-manager.sh <repo-url>
+#   2. Create new branch worktree (skip setup):
+#        ./git-worktree-manager.sh --new-branch <branch-name> [base-branch]
 #
-# Example:
-#   ./setup-git-worktree.sh git@github.com:org/repo.git
-#
-# This script:
-#   - Creates a root folder named after the repo
-#   - Bare clones into .bare
-#   - Points .git to .bare
-#   - Configures fetch to track ALL remote branches
-#   - Auto-detects default branch from remote
-#   - Creates initial worktree for default branch on a local tracking branch
-#   - Automatically pushes new branches to GitHub when created
+# Notes:
+#   - In branch-only mode, must be run from the repo root (where .git points to .bare)
+#   - Automatically pushes new branches to origin with upstream tracking
 #   - Never uses --git-dir
 
 set -e
 
+# --- Helper: Detect default branch from remote ---
+detect_default_branch() {
+    local branch
+    branch=$(git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's@^refs/remotes/origin/@@')
+    echo "$branch"
+}
+
+# --- Helper: Create and push new branch worktree ---
+create_new_branch_worktree() {
+    local new_branch="$1"
+    local base_branch="$2"
+
+    if [ -z "$base_branch" ]; then
+        base_branch=$(detect_default_branch)
+        if [ -z "$base_branch" ]; then
+            echo "❌ Could not detect default branch. Please specify base branch."
+            exit 1
+        fi
+    fi
+
+    echo "📡 Fetching latest from origin"
+    git fetch --all --prune
+
+    if git show-ref --verify --quiet "refs/heads/$new_branch"; then
+        echo "📂 Branch '$new_branch' exists locally — creating worktree from it"
+        git worktree add "$new_branch" "$new_branch"
+    else
+        echo "🌱 Creating new branch '$new_branch' from '$base_branch'"
+        git worktree add "$new_branch" -b "$new_branch" --track "origin/$base_branch"
+        echo "☁️  Pushing new branch '$new_branch' to origin"
+        (cd "$new_branch" && git push -u origin "$new_branch")
+    fi
+
+    echo "✅ Worktree for '$new_branch' is ready"
+    git worktree list
+}
+
+# --- Branch-only mode ---
+if [ "$1" == "--new-branch" ]; then
+    if [ -z "$2" ]; then
+        echo "Usage: $0 --new-branch <branch-name> [base-branch]"
+        exit 1
+    fi
+    create_new_branch_worktree "$2" "$3"
+    exit 0
+fi
+
+# --- Full setup mode ---
 if [ -z "$1" ]; then
     echo "Usage: $0 <repo-url>"
     exit 1
@@ -49,9 +92,7 @@ git config remote.origin.fetch "+refs/heads/*:refs/remotes/origin/*"
 echo "📡 Fetching all remote branches"
 git fetch --all --prune
 
-echo "🔍 Detecting default branch from remote"
-DEFAULT_BRANCH=$(git symbolic-ref refs/remotes/origin/HEAD | sed 's@^refs/remotes/origin/@@')
-
+DEFAULT_BRANCH=$(detect_default_branch)
 if [ -z "$DEFAULT_BRANCH" ]; then
     echo "❌ Could not detect default branch. Please specify manually."
     exit 1
@@ -68,7 +109,3 @@ fi
 
 echo "✅ Setup complete!"
 git worktree list
-
-echo
-echo "💡 To create and push a new branch worktree:"
-echo "   git worktree add <dir> -b <branch> origin/$DEFAULT_BRANCH && (cd <dir> && git push -u origin <branch>)"
