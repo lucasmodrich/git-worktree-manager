@@ -1,25 +1,19 @@
 #!/usr/bin/env bash
 #
 # git-worktree-manager.sh
-#
-# Modes:
-#   1. Full setup:
-#        ./git-worktree-manager.sh <org>/<repo>
-#   2. Create new branch worktree:
-#        ./git-worktree-manager.sh --new-branch <branch-name> [base-branch]
-#   3. List all worktrees:
-#        ./git-worktree-manager.sh --list
-#   4. Prune stale worktrees:
-#        ./git-worktree-manager.sh --prune
-#   5. Remove worktree and local branch:
-#        ./git-worktree-manager.sh --remove <branch-name>
-#
-# Notes:
-#   - In branch-only, list, prune, and remove modes, must be run from the repo root (where .git points to .bare)
-#   - Automatically pushes new branches to origin with upstream tracking
-#   - Never uses --git-dir
+# Version: 0.1.0
+
+SCRIPT_VERSION="0.1.0"
+SCRIPT_NAME="git-worktree-manager.sh"
+GITHUB_REPO="lucasmodrich/git-worktree-manager"
+RAW_URL="https://raw.githubusercontent.com/$GITHUB_REPO/main/$SCRIPT_NAME"
 
 set -e
+
+# --- Helper: Compare semantic versions ---
+version_gt() {
+    [ "$(printf '%s\n' "$1" "$2" | sort -V | head -n1)" != "$1" ]
+}
 
 # --- Helper: Detect default branch from remote ---
 detect_default_branch() {
@@ -96,6 +90,83 @@ remove_worktree_and_branch() {
     echo "✅ Removal complete."
 }
 
+# --- Helper: Show version ---
+show_version() {
+    echo "git-worktree-manager.sh version $SCRIPT_VERSION"
+}
+
+# --- Helper: Upgrade script ---
+upgrade_script() {
+    echo "🔍 Checking for newer version on GitHub..."
+
+    remote_version=$(curl -s "$RAW_URL" | grep '^SCRIPT_VERSION=' | cut -d'"' -f2)
+
+    if [ -z "$remote_version" ]; then
+        echo "❌ Could not retrieve remote version."
+        exit 1
+    fi
+
+    echo "🔢 Local version: $SCRIPT_VERSION"
+    echo "🌐 Remote version: $remote_version"
+
+    if version_gt "$SCRIPT_VERSION" "$remote_version"; then
+        echo "✅ You already have the latest version."
+    else
+        echo "⬇️ Upgrading to version $remote_version..."
+        curl -s -o "$SCRIPT_NAME.tmp" "$RAW_URL"
+        mv "$SCRIPT_NAME.tmp" "$SCRIPT_NAME"
+        chmod +x "$SCRIPT_NAME"
+        echo "✅ Upgrade complete. Now running version $remote_version."
+    fi
+    exit 0
+}
+
+# --- Helper: Show help card ---
+show_help() {
+    cat <<EOF
+
+🛠 Git Worktree Manager — Help Card
+
+Usage:
+  $0 <org>/<repo>                     # Full setup from GitHub
+  $0 --new-branch <branch> [base]     # Create new branch worktree
+  $0 --remove <branch>                # Remove worktree and local branch
+  $0 --list                           # List active worktrees
+  $0 --prune                          # Prune stale worktrees
+  $0 --version                        # Show script version
+  $0 --upgrade                        # Upgrade to latest version
+  $0 --help                           # Show this help card
+
+Examples:
+  $0 acme/webapp
+  $0 --new-branch feature/login-page
+  $0 --remove feature/login-page
+
+Notes:
+  - Run from repo root (where .git points to .bare)
+  - New branches are pushed to GitHub automatically
+  - Remote branch is not deleted by --remove
+
+EOF
+}
+
+# --- Mode: Help ---
+if [ "$1" == "--help" ]; then
+    show_help
+    exit 0
+fi
+
+# --- Mode: Version ---
+if [ "$1" == "--version" ]; then
+    show_version
+    exit 0
+fi
+
+# --- Mode: Upgrade ---
+if [ "$1" == "--upgrade" ]; then
+    upgrade_script
+fi
+
 # --- Mode: List worktrees ---
 if [ "$1" == "--list" ]; then
     list_worktrees
@@ -126,12 +197,7 @@ fi
 
 # --- Mode: Full setup ---
 if [ -z "$1" ]; then
-    echo "Usage:"
-    echo "  $0 <org>/<repo>"
-    echo "  $0 --new-branch <branch-name> [base-branch]"
-    echo "  $0 --list"
-    echo "  $0 --prune"
-    echo "  $0 --remove <branch-name>"
+    show_help
     exit 1
 fi
 

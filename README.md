@@ -1,41 +1,45 @@
 # Git Worktree Manager
 
 ## 📌 Overview
-`git-worktree-manager.sh` is a flexible shell script for managing Git repositories using a **bare clone + worktree** workflow.
+`git-worktree-manager.sh` is a self-updating shell script for managing Git repositories using a **bare clone + worktree** workflow.
 
-It supports five modes:
+It supports:
 
-1. **Full Setup Mode** — Clones a GitHub repo using `org/repo` shorthand, configures it for worktrees, and creates the initial worktree for the default branch.
-2. **Branch‑Only Mode** — Creates a new branch worktree (from a base branch), automatically pushing it to GitHub.
-3. **List Mode** — Displays all active worktrees.
-4. **Prune Mode** — Cleans up stale worktree references.
-5. **Remove Mode** — Deletes a worktree and its local branch.
+- **Full setup** from GitHub using `org/repo` shorthand
+- **Branch creation** with automatic remote push
+- **Worktree listing**, pruning, and removal
+- **Version tracking** and **self-upgrade**
+- **Markdown-style help card** for onboarding
 
-This workflow:
-- Keeps Git metadata isolated in `.bare`
-- Allows multiple branches to be worked on in parallel
-- Saves disk space by sharing the same object database
-- Ensures remote branches are fetched and tracked
-- Automatically pushes new branches to GitHub
+---
+
+## 🧠 Versioning & Upgrade
+
+- Current version: `v0.1.0`
+- Check version:
+  ```bash
+  ./git-worktree-manager.sh --version
+  ```
+- Upgrade to latest from GitHub:
+  ```bash
+  ./git-worktree-manager.sh --upgrade
+  ```
 
 ---
 
 ## 📂 Folder Structure
 
-After **Full Setup Mode**, your project will look like:
-
+After setup:
 ```
 <repo-name>/
-├── .bare/             # Bare repository clone (Git metadata only)
+├── .bare/             # Bare repository clone
 ├── .git               # Points to .bare
-└── <default-branch>/  # Worktree for the default branch
+└── <default-branch>/  # Initial worktree
 ```
-
-All additional worktrees will also be created under the root folder.
 
 ---
 
-## 🖼 Visual Architecture Diagram
+## 🖼 Architecture Diagram
 
 ```
                 ┌───────────────────────────┐
@@ -49,207 +53,143 @@ All additional worktrees will also be created under the root folder.
 │ main/        │       │ feature-x/   │        │ bugfix-y/    │
 │ (worktree)   │       │ (worktree)   │        │ (worktree)   │
 └──────────────┘       └──────────────┘        └──────────────┘
-     │                        │                        │
-     ▼                        ▼                        ▼
- Files for main branch   Files for feature-x     Files for bugfix-y
- (tracked by .bare)      (tracked by .bare)      (tracked by .bare)
 ```
 
 ---
 
 ## 🔄 Flow Diagrams
 
-### **Full Setup Mode**
+### Full Setup
 ```
-┌──────────────────────────────┐
-│ Start: Provide <org>/<repo>  │
-└───────────────┬──────────────┘
-                ▼
-      Create root folder
-                ▼
-      Bare clone into .bare
-                ▼
-  Create .git pointing to .bare
-                ▼
- Configure fetch for all branches
-                ▼
-       Fetch all branches
-                ▼
- Detect default branch from remote
-                ▼
- Does local branch exist?
-     ┌──────────┴──────────┐
-     │ Yes                 │ No
-     ▼                     ▼
- Create worktree     Create worktree
- from local branch   from remote branch
-                     & push to origin
-                ▼
-        Setup complete
+Input: <org>/<repo>
+→ Create root folder
+→ Clone into .bare
+→ Point .git to .bare
+→ Configure fetch
+→ Fetch branches
+→ Detect default branch
+→ Create worktree
+→ Push if new
+```
+
+### Branch Creation
+```
+Input: --new-branch <branch> [base]
+→ Fetch branches
+→ Create worktree
+→ Push if new
 ```
 
 ---
 
-### **Branch‑Only Mode**
-```
-┌──────────────────────────────────────┐
-│ Start: --new-branch <branch> [base]  │
-└───────────────────┬──────────────────┘
-                    ▼
-         Fetch all branches
-                    ▼
-   Does local branch exist?
-     ┌──────────┴──────────┐
-     │ Yes                 │ No
-     ▼                     ▼
- Create worktree     Create worktree
- from local branch   from base branch
-                     & push to origin
-                    ▼
-             Worktree ready
-```
-
----
-
-### 🌐 Local ↔ Remote Branch Relationship Diagram
+## 🌐 Local ↔ Remote Relationship
 
 ```
-          GitHub Remote (origin)
-        ┌────────────────────────┐
-        │  origin/main           │
-        │  origin/feature-x      │
-        │  origin/bugfix-y       │
-        └───────────┬────────────┘
-                    │ fetch/push
-                    ▼
-           ┌─────────────────┐
-           │   .bare repo     │
-           │ (local metadata) │
-           └───────┬─────────┘
-                   │
-   ┌───────────────┼────────────────┐
-   │               │                │
-┌───────┐     ┌───────────┐    ┌───────────┐
-│ main/ │     │ feature-x/│    │ bugfix-y/ │
-│ local │     │ local     │    │ local     │
-└───────┘     └───────────┘    └───────────┘
-   │             │                │
-   ▼             ▼                ▼
- Files for   Files for        Files for
- main        feature-x        bugfix-y
+GitHub Remote (origin)
+┌────────────────────┐
+│ origin/main        │
+│ origin/feature-x   │
+└──────────┬─────────┘
+           ▼
+       .bare repo
+           ▼
+┌──────────────┐
+│ feature-x/   │
+└──────────────┘
 ```
 
 ---
 
 ## 🚀 Usage
 
-### 1. Make the script executable
+### Make executable
 ```bash
 chmod +x git-worktree-manager.sh
 ```
 
 ---
 
-### 2. Full Setup Mode
+### Full Setup
 ```bash
 ./git-worktree-manager.sh your-org/your-repo
 ```
 
-Creates:
-- Root folder named after the repo
-- Bare clone in `.bare`
-- `.git` pointer
-- Fetch config
-- Initial worktree for default branch
-- Pushes it to GitHub if new
-
 ---
 
-### 3. Create New Branch Worktree
+### Create New Branch
 ```bash
-./git-worktree-manager.sh --new-branch <branch-name> [base-branch]
-```
-
-Examples:
-```bash
-./git-worktree-manager.sh --new-branch feature/login-page
-./git-worktree-manager.sh --new-branch hotfix/payment-bug develop
+./git-worktree-manager.sh --new-branch <branch> [base]
 ```
 
 ---
 
-### 4. List Worktrees
+### Remove Worktree + Branch
+```bash
+./git-worktree-manager.sh --remove <branch>
+```
+
+---
+
+### List Worktrees
 ```bash
 ./git-worktree-manager.sh --list
 ```
 
 ---
 
-### 5. Prune Stale Worktrees
+### Prune Stale Worktrees
 ```bash
 ./git-worktree-manager.sh --prune
 ```
 
 ---
 
-### 6. Remove Worktree and Local Branch
+### Show Version
 ```bash
-./git-worktree-manager.sh --remove <branch-name>
-```
-
-Example:
-```bash
-./git-worktree-manager.sh --remove feature/login-page
+./git-worktree-manager.sh --version
 ```
 
 ---
 
-## 🛠 Common Git Commands
-
-| Task | Command |
-|------|---------|
-| List all worktrees | `git worktree list` |
-| Remove a worktree | `git worktree remove <dir>` |
-| Delete a local branch | `git branch -D <branch>` |
-| Prune stale worktrees | `git worktree prune` |
-| Fetch all updates | `git fetch --all --prune` |
+### Upgrade Script
+```bash
+./git-worktree-manager.sh --upgrade
+```
 
 ---
 
-## 💡 Best Practices
-- Keep all worktrees under the root folder for clarity.
-- Use descriptive branch names for worktree directories.
-- Regularly run `--prune` to keep `.bare` clean.
-- Remove unused worktrees with `--remove`.
-- Never edit files directly in `.bare`.
+### Help Card
+```bash
+./git-worktree-manager.sh --help
+```
 
 ---
 
 ## 📖 Example Workflow
 
 ```bash
-# Initial setup
-./git-worktree-manager.sh your-org/your-repo
+# Setup
+./git-worktree-manager.sh acme/webapp
 
-# Create a new feature branch
+# Create feature branch
 ./git-worktree-manager.sh --new-branch feature/login-page
 
-# Work in the new branch
+# Work
 cd feature/login-page
 git add .
-git commit -m "Implement login page"
+git commit -m "Add login page"
 git push
 
-# Clean up when done
+# Clean up
 ./git-worktree-manager.sh --remove feature/login-page
 ```
 
 ---
 
-## ✅ Benefits of This Workflow
-- Disk space efficiency — all worktrees share the same `.bare` repo data.
-- Fast branch switching — no need to stash or re-checkout.
-- Parallel development — work on multiple branches at once.
-- Clean separation — Git metadata is isolated from working directories.
-- Automatic remote sync — new branches are pushed to GitHub immediately.
+## ✅ Benefits
 
+- Disk-efficient multi-branch development
+- No detached HEADs
+- Easy onboarding with help card
+- Self-updating and version-aware
+- GitHub-native workflow
