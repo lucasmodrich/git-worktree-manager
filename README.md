@@ -31,6 +31,118 @@ All additional worktrees will also be created under the root folder.
 
 ---
 
+## 🖼 Visual Architecture Diagram
+
+```
+                ┌───────────────────────────┐
+                │        .bare repo          │
+                │  (Git metadata & objects)  │
+                └─────────────┬─────────────┘
+                              │
+     ┌────────────────────────┼────────────────────────┐
+     │                        │                        │
+┌──────────────┐       ┌──────────────┐        ┌──────────────┐
+│ main/        │       │ feature-x/   │        │ bugfix-y/    │
+│ (worktree)   │       │ (worktree)   │        │ (worktree)   │
+└──────────────┘       └──────────────┘        └──────────────┘
+     │                        │                        │
+     ▼                        ▼                        ▼
+ Files for main branch   Files for feature-x     Files for bugfix-y
+ (tracked by .bare)      (tracked by .bare)      (tracked by .bare)
+```
+
+---
+
+## 🔄 Flow Diagrams
+
+### **Full Setup Mode**
+```
+┌──────────────────────────────┐
+│ Start: Provide <repo-url>     │
+└───────────────┬───────────────┘
+                ▼
+      Create root folder
+                ▼
+      Bare clone into .bare
+                ▼
+  Create .git pointing to .bare
+                ▼
+ Configure fetch for all branches
+                ▼
+       Fetch all branches
+                ▼
+ Detect default branch from remote
+                ▼
+ Does local branch exist?
+     ┌──────────┴──────────┐
+     │ Yes                 │ No
+     ▼                     ▼
+ Create worktree     Create worktree
+ from local branch   from remote branch
+                     & push to origin
+                ▼
+        Setup complete
+```
+
+---
+
+### **Branch‑Only Mode**
+```
+┌──────────────────────────────────────┐
+│ Start: --new-branch <branch> [base]   │
+└───────────────────┬──────────────────┘
+                    ▼
+         Fetch all branches
+                    ▼
+   Does local branch exist?
+     ┌──────────┴──────────┐
+     │ Yes                 │ No
+     ▼                     ▼
+ Create worktree     Create worktree
+ from local branch   from base branch
+                     & push to origin
+                    ▼
+             Worktree ready
+```
+
+---
+
+## 🌐 Local ↔ Remote Branch Relationship Diagram
+
+```
+          GitHub Remote (origin)
+        ┌────────────────────────┐
+        │  origin/main           │
+        │  origin/feature-x      │
+        │  origin/bugfix-y       │
+        └───────────┬────────────┘
+                    │ fetch/push
+                    ▼
+           ┌──────────────────┐
+           │   .bare repo     │
+           │ (local metadata) │
+           └───────┬──────────┘
+                   │
+   ┌───────────────┼────────────────┐
+   │               │                │
+┌───────┐     ┌───────────┐    ┌───────────┐
+│ main/ │     │ feature-x/│    │ bugfix-y/ │
+│ local │     │ local     │    │ local     │
+└───────┘     └───────────┘    └───────────┘
+   │             │                │
+   ▼             ▼                ▼
+ Files for   Files for        Files for
+ main        feature-x        bugfix-y
+```
+
+**How it works:**
+- **Remote branches** live on GitHub under `origin/*`.
+- The `.bare` repo stores **local tracking branches** (`refs/remotes/origin/*`) and local branches (`refs/heads/*`).
+- Each worktree is checked out to a **local branch** that tracks its corresponding remote branch.
+- Fetch updates `.bare` from GitHub; push sends changes from a worktree’s branch to GitHub.
+
+---
+
 ## 🚀 Usage
 
 ### 1. Make the script executable
@@ -49,16 +161,6 @@ Example:
 ./git-worktree-manager.sh git@github.com:org/repo.git
 ```
 
-**What happens:**
-1. Creates a root folder named after the repo.
-2. Bare-clones the repo into `.bare`.
-3. Creates `.git` file pointing to `.bare`.
-4. Configures Git to fetch **all** remote branches.
-5. Fetches all branches from the remote.
-6. Detects the default branch from `origin/HEAD`.
-7. Creates a local tracking branch for the default branch in a worktree.
-8. Pushes it to GitHub if it’s new.
-
 ---
 
 ### 3. **Branch‑Only Mode** (Skip Setup, Create New Branch)
@@ -75,11 +177,6 @@ Examples:
 # Create from a specific base branch
 ./git-worktree-manager.sh --new-branch hotfix/payment-bug develop
 ```
-
-**What happens:**
-1. Fetches all remote branches.
-2. If the branch exists locally → creates a worktree from it.
-3. If it’s new → creates it from the base branch, sets it to track the remote, and pushes it to GitHub.
 
 ---
 
@@ -128,4 +225,3 @@ git push
 - **Clean separation** — Git metadata is isolated from working directories.
 - **Automatic remote sync** — new branches are pushed to GitHub immediately.
 ```
-
