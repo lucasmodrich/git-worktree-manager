@@ -15,6 +15,7 @@
 #   - Configures fetch to track ALL remote branches
 #   - Auto-detects default branch from remote
 #   - Creates initial worktree for default branch on a local tracking branch
+#   - Automatically pushes new branches to GitHub when created
 #   - Never uses --git-dir
 
 set -e
@@ -58,12 +59,16 @@ fi
 
 echo "🌱 Creating initial worktree for branch: $DEFAULT_BRANCH"
 if git show-ref --verify --quiet "refs/heads/$DEFAULT_BRANCH"; then
-    # Branch already exists locally — check it out directly
     git worktree add "$DEFAULT_BRANCH" "$DEFAULT_BRANCH"
 else
-    # Branch doesn't exist locally — create it and track remote
     git worktree add "$DEFAULT_BRANCH" -b "$DEFAULT_BRANCH" --track "origin/$DEFAULT_BRANCH"
+    echo "☁️  Pushing new branch '$DEFAULT_BRANCH' to origin"
+    (cd "$DEFAULT_BRANCH" && git push -u origin "$DEFAULT_BRANCH")
 fi
 
 echo "✅ Setup complete!"
 git worktree list
+
+echo
+echo "💡 To create and push a new branch worktree:"
+echo "   git worktree add <dir> -b <branch> origin/$DEFAULT_BRANCH && (cd <dir> && git push -u origin <branch>)"
