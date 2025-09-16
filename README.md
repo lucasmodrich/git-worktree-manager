@@ -1,28 +1,30 @@
-# Git Worktree Setup Script
+# Git Worktree Manager
 
 ## 📌 Overview
-This repository contains a shell script, `setup-git-worktree.sh`, that automates the setup of a **bare Git repository** with a clean, maintainable **worktree-based workflow** for local development.
+`git-worktree-manager.sh` is a flexible shell script for managing Git repositories using a **bare clone + worktree** workflow.
 
-The script:
-- Creates a **root project folder** named after the GitHub repository.
-- Bare-clones the repository into a `.bare` folder inside the root.
-- Creates a `.git` file in the root that points to `.bare`.
-- Configures Git to **fetch and track all remote branches** automatically.
-- Auto-detects the **default branch** from the remote (`main`, `master`, or other).
-- Creates the **initial worktree** for the default branch as a local tracking branch (no detached HEAD).
-- Avoids the need to use `--git-dir` in daily work.
+It supports two modes:
+
+1. **Full Setup Mode** — Clones a GitHub repo into a `.bare` folder, configures it for worktrees, and creates the initial worktree for the default branch.
+2. **Branch‑Only Mode** — Skips the bare clone and simply creates a new branch worktree (from a base branch), automatically pushing it to the remote with upstream tracking.
+
+This workflow:
+- Keeps Git metadata isolated in `.bare`
+- Allows multiple branches to be worked on in parallel without switching
+- Saves disk space by sharing the same object database across worktrees
+- Ensures all remote branches are fetched and tracked
 
 ---
 
 ## 📂 Folder Structure
 
-After running the script, your project will look like this:
+After **Full Setup Mode**, your project will look like:
 
 ```
 <repo-name>/
-├── .bare/           # Bare repository clone (Git metadata only)
-├── .git             # Points to .bare
-└── <default-branch>/ # Worktree for the default branch
+├── .bare/             # Bare repository clone (Git metadata only)
+├── .git               # Points to .bare
+└── <default-branch>/  # Worktree for the default branch
 ```
 
 All additional worktrees will also be created under the root folder.
@@ -33,43 +35,55 @@ All additional worktrees will also be created under the root folder.
 
 ### 1. Make the script executable
 ```bash
-chmod +x setup-git-worktree.sh
+chmod +x git-worktree-manager.sh
 ```
 
-### 2. Run the script
+---
+
+### 2. **Full Setup Mode** (Initial Repo Setup)
 ```bash
-./setup-git-worktree.sh <repo-url>
+./git-worktree-manager.sh <repo-url>
 ```
 Example:
 ```bash
-./setup-git-worktree.sh git@github.com:org/repo.git
+./git-worktree-manager.sh git@github.com:org/repo.git
 ```
 
-The script will:
-1. Create a folder named after the repo.
-2. Bare-clone into `.bare`.
-3. Configure tracking for all remote branches.
-4. Fetch all branches.
-5. Detect the default branch.
-6. Create the first worktree for that branch.
+**What happens:**
+1. Creates a root folder named after the repo.
+2. Bare-clones the repo into `.bare`.
+3. Creates `.git` file pointing to `.bare`.
+4. Configures Git to fetch **all** remote branches.
+5. Fetches all branches from the remote.
+6. Detects the default branch from `origin/HEAD`.
+7. Creates a local tracking branch for the default branch in a worktree.
+8. Pushes it to GitHub if it’s new.
 
 ---
 
-## 🛠 Creating Additional Worktrees
-
-### New branch from default branch
+### 3. **Branch‑Only Mode** (Skip Setup, Create New Branch)
+From inside an already set‑up repo root:
 ```bash
-git worktree add feature/my-feature -b feature/my-feature origin/<default-branch>
+./git-worktree-manager.sh --new-branch <branch-name> [base-branch]
 ```
 
-### Worktree for an existing remote branch
+Examples:
 ```bash
-git worktree add bugfix/issue-123 origin/bugfix/issue-123
+# Create from default branch
+./git-worktree-manager.sh --new-branch feature/login-page
+
+# Create from a specific base branch
+./git-worktree-manager.sh --new-branch hotfix/payment-bug develop
 ```
+
+**What happens:**
+1. Fetches all remote branches.
+2. If the branch exists locally → creates a worktree from it.
+3. If it’s new → creates it from the base branch, sets it to track the remote, and pushes it to GitHub.
 
 ---
 
-## 🔄 Maintenance Commands
+## 🛠 Common Worktree Commands
 
 | Task | Command |
 |------|---------|
@@ -92,16 +106,17 @@ git worktree add bugfix/issue-123 origin/bugfix/issue-123
 ## 📖 Example Workflow
 
 ```bash
-# Create a new feature branch worktree
-git worktree add feature/login-page -b feature/login-page origin/main
+# 1. Initial setup
+./git-worktree-manager.sh git@github.com:org/repo.git
 
-# Switch to it
+# 2. Create a new feature branch from default branch
+./git-worktree-manager.sh --new-branch feature/login-page
+
+# 3. Work in the new branch
 cd feature/login-page
-
-# Work, commit, push
 git add .
 git commit -m "Implement login page"
-git push -u origin feature/login-page
+git push
 ```
 
 ---
@@ -111,3 +126,6 @@ git push -u origin feature/login-page
 - **Fast branch switching** — no need to stash or re-checkout.
 - **Parallel development** — work on multiple branches at once in separate directories.
 - **Clean separation** — Git metadata is isolated from working directories.
+- **Automatic remote sync** — new branches are pushed to GitHub immediately.
+```
+
