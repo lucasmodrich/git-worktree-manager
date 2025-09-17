@@ -1,3 +1,10 @@
+## [1.0.1-beta.4](https://github.com/lucasmodrich/git-worktree-manager/compare/v1.0.1-beta.3...v1.0.1-beta.4) (2025-09-17)
+
+
+### Bug Fixes
+
+* improve script self-upgrade process. Now deploys to /home/modrich/.git-worktree-manager ([be2850b](https://github.com/lucasmodrich/git-worktree-manager/commit/be2850b87fe54e6e5a5b3606a47082dffa8bf450))
+
 ## [1.0.1-beta.3](https://github.com/lucasmodrich/git-worktree-manager/compare/v1.0.1-beta.2...v1.0.1-beta.3) (2025-09-17)
 
 
