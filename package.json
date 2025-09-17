@@ -1,14 +1,10 @@
 {
-  "name": "release-testing",
-  "version": "1.0.0",
+  "name": "git-worktree-manager",
+  "version": "0.0.0-semantically-released",
   "description": "`git-worktree-manager.sh` is a self-updating shell script for managing Git repositories using a **bare clone + worktree** workflow.",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "keywords": ["git", "worktree", "bash", "automation", "semantic-release"],
+  "author": "Lucas Modrich",
+  "license": "MIT",
   "devDependencies": {
     "@semantic-release/changelog": "^6.0.3",
     "@semantic-release/commit-analyzer": "^13.0.1",
