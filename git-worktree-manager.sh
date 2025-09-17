@@ -2,11 +2,11 @@
 #
 # git-worktree-manager.sh
 
-SCRIPT_VERSION="1.1.0-beta.2"
+SCRIPT_VERSION="1.1.3"
 SCRIPT_FOLDER="$HOME/.git-worktree-manager"
 SCRIPT_NAME="git-worktree-manager.sh"
 GITHUB_REPO="lucasmodrich/git-worktree-manager"
-RAW_BRANCH_URL="https://raw.githubusercontent.com/$GITHUB_REPO/refs/heads/main/"
+RAW_BRANCH_URL="https://raw.githubusercontent.com/$GITHUB_REPO/refs/heads/main"
 RAW_URL="https://raw.githubusercontent.com/$GITHUB_REPO/refs/heads/main/$SCRIPT_NAME"
 
 set -e
@@ -119,10 +119,13 @@ upgrade_script() {
         curl -s -O "$RAW_URL"
         #mv "$SCRIPT_FOLDER/$SCRIPT_NAME.tmp" "$SCRIPT_FOLDER/$SCRIPT_NAME"
         chmod +x "$SCRIPT_FOLDER/$SCRIPT_NAME"
-
-        curl -s -O "RAW_BRANCH_URL/README.md"
-        curl -s -O "RAW_BRANCH_URL/VERSION"
-        curl -s -O "RAW_BRANCH_URL/LICENCE"
+        echo "."
+        curl -s -O "$RAW_BRANCH_URL/README.md"
+        echo "."
+        curl -s -O "$RAW_BRANCH_URL/VERSION"
+        echo "."
+        curl -s -O "$RAW_BRANCH_URL/LICENCE"
+        echo "."
 
         echo "✅ Upgrade complete. Now running version $remote_version."
     fi

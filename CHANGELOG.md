@@ -1,9 +1,30 @@
-# [1.1.0-beta.2](https://github.com/lucasmodrich/git-worktree-manager/compare/v1.1.0-beta.1...v1.1.0-beta.2) (2025-09-17)
+## [1.1.3](https://github.com/lucasmodrich/git-worktree-manager/compare/v1.1.2...v1.1.3) (2025-09-17)
 
 
 ### Bug Fixes
 
-* merge conflict ([c080d08](https://github.com/lucasmodrich/git-worktree-manager/commit/c080d08e12f3fe1e8c1cdd696bf013c1b18324ba))
+* Update git-worktree-manager.sh to echo progress of downloaded files ([e3c132a](https://github.com/lucasmodrich/git-worktree-manager/commit/e3c132a3c2ebe5eec361d22448b64bc7322dc61d))
+
+## [1.1.2](https://github.com/lucasmodrich/git-worktree-manager/compare/v1.1.1...v1.1.2) (2025-09-17)
+
+
+### Bug Fixes
+
+* Update git-worktree-manager.sh to ensure $RAW_BRANCH_URL variable is used correctly. ([0489853](https://github.com/lucasmodrich/git-worktree-manager/commit/0489853b17e00e8a02f6a7b5f730d79c85c3e518))
+
+## [1.1.1](https://github.com/lucasmodrich/git-worktree-manager/compare/v1.1.0...v1.1.1) (2025-09-17)
+
+
+### Bug Fixes
+
+* Update git-worktree-manager.sh to remove additional trailing \ from RAW_REPO_URL ([1cfea71](https://github.com/lucasmodrich/git-worktree-manager/commit/1cfea7195a0a6b76d087c6d75e39b24cb4def209))
+
+# [1.1.0](https://github.com/lucasmodrich/git-worktree-manager/compare/v1.0.2...v1.1.0) (2025-09-17)
+
+
+### Features
+
+* **upgrade:** Improve upgrade to also include download of README, VERSION and LICENCE files ([43aa5ac](https://github.com/lucasmodrich/git-worktree-manager/commit/43aa5ac68aa8e66fff0b4a1c2cf8bcfef6b592c0))
 
 ## [1.0.2](https://github.com/lucasmodrich/git-worktree-manager/compare/v1.0.1...v1.0.2) (2025-09-17)
 
