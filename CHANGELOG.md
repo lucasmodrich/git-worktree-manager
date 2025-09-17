@@ -1,3 +1,11 @@
+## [1.0.1-beta.2](https://github.com/lucasmodrich/git-worktree-manager/compare/v1.0.1-beta.1...v1.0.1-beta.2) (2025-09-17)
+
+
+### Bug Fixes
+
+* correcting management of the version in git-worktree-manager.sh' ([b292506](https://github.com/lucasmodrich/git-worktree-manager/commit/b2925060d90878fd1da6b0cd45a22dec3aa9cb86))
+* futher fixes for release management ([9956406](https://github.com/lucasmodrich/git-worktree-manager/commit/99564063e14d70366f8dede5e4385786d6ea144b))
+
 ## [1.0.1-beta.1](https://github.com/lucasmodrich/git-worktree-manager/compare/v1.0.0...v1.0.1-beta.1) (2025-09-17)
 
 
