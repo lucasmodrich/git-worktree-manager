@@ -1,3 +1,10 @@
+## [1.1.2](https://github.com/lucasmodrich/git-worktree-manager/compare/v1.1.1...v1.1.2) (2025-09-17)
+
+
+### Bug Fixes
+
+* Update git-worktree-manager.sh to ensure $RAW_BRANCH_URL variable is used correctly. ([0489853](https://github.com/lucasmodrich/git-worktree-manager/commit/0489853b17e00e8a02f6a7b5f730d79c85c3e518))
+
 ## [1.1.1](https://github.com/lucasmodrich/git-worktree-manager/compare/v1.1.0...v1.1.1) (2025-09-17)
 
 
