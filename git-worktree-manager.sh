@@ -2,7 +2,7 @@
 #
 # git-worktree-manager.sh
 
-SCRIPT_VERSION="0.1.0"
+SCRIPT_VERSION="1.0.1-beta.1"
 SCRIPT_NAME="git-worktree-manager.sh"
 GITHUB_REPO="lucasmodrich/git-worktree-manager"
 RAW_URL="https://raw.githubusercontent.com/$GITHUB_REPO/main/$SCRIPT_NAME"

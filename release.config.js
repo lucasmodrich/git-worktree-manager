@@ -17,7 +17,7 @@ module.exports = {
             }
         },
         ['@semantic-release/exec', {
-            prepareCmd: `sed -i '0,/^SCRIPT_VERSION=/s//SCRIPT_VERSION="\${nextRelease.version}"/' git-worktree-manager.sh`
+            prepareCmd: 'sed -i '/^SCRIPT_VERSION=/s/.*/SCRIPT_VERSION="${nextRelease.version}"/' git-worktree-manager.sh'
         }],
 
         ['@semantic-release/git', {
