@@ -28,6 +28,7 @@ module.exports = {
                 { path: 'git-worktree-manager.sh', label: 'git-worktree-manager.sh' },
                 { path: 'README.md', label: 'README.md' },
                 { path: 'LICENSE', label: 'License' },
+                { path: 'VERSION', label: 'Version' },
                 { path: 'release-package.tar.gz', label: 'Full Package' }
             ]
         }],

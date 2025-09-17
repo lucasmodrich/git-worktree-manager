@@ -21,7 +21,7 @@ jobs:
 
       - run: npm ci
 
-      - run: tar -czf release-package.tar.gz git-worktree-manager.sh README.md LICENSE
+      - run: tar -czf release-package.tar.gz git-worktree-manager.sh README.md LICENSE VERSION
 
       - run: npx semantic-release
         env:
