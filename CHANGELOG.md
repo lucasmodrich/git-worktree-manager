@@ -1,3 +1,10 @@
+# [1.1.0](https://github.com/lucasmodrich/git-worktree-manager/compare/v1.0.2...v1.1.0) (2025-09-17)
+
+
+### Features
+
+* **upgrade:** Improve upgrade to also include download of README, VERSION and LICENCE files ([43aa5ac](https://github.com/lucasmodrich/git-worktree-manager/commit/43aa5ac68aa8e66fff0b4a1c2cf8bcfef6b592c0))
+
 ## [1.0.2](https://github.com/lucasmodrich/git-worktree-manager/compare/v1.0.1...v1.0.2) (2025-09-17)
 
 
