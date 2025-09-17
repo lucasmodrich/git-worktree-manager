@@ -1,3 +1,10 @@
+## [1.0.1-beta.3](https://github.com/lucasmodrich/git-worktree-manager/compare/v1.0.1-beta.2...v1.0.1-beta.3) (2025-09-17)
+
+
+### Bug Fixes
+
+* ensure the version number update made to git-worktree-manager.sh is committed as part of the release process.' ([445b899](https://github.com/lucasmodrich/git-worktree-manager/commit/445b8997355bf0279e024e33f3c9649e62d88154))
+
 ## [1.0.1-beta.2](https://github.com/lucasmodrich/git-worktree-manager/compare/v1.0.1-beta.1...v1.0.1-beta.2) (2025-09-17)
 
 
