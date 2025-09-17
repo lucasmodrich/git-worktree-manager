@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 #
 # git-worktree-manager.sh
-# Version: 0.1.0
 
 SCRIPT_VERSION="0.1.0"
 SCRIPT_NAME="git-worktree-manager.sh"

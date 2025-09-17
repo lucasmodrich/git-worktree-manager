@@ -16,6 +16,10 @@ module.exports = {
                 fs.writeFileSync('VERSION', context.nextRelease.version);
             }
         },
+        ['@semantic-release/exec', {
+            prepareCmd: `sed -i '0,/^SCRIPT_VERSION=/s//SCRIPT_VERSION="\${nextRelease.version}"/' git-worktree-manager.sh`
+        }],
+
         ['@semantic-release/git', {
             assets: ['CHANGELOG.md', 'VERSION'],
             message: 'chore(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}'
