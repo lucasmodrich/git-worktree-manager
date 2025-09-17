@@ -6,7 +6,7 @@ SCRIPT_VERSION="1.1.0"
 SCRIPT_FOLDER="$HOME/.git-worktree-manager"
 SCRIPT_NAME="git-worktree-manager.sh"
 GITHUB_REPO="lucasmodrich/git-worktree-manager"
-RAW_BRANCH_URL="https://raw.githubusercontent.com/$GITHUB_REPO/refs/heads/main/"
+RAW_BRANCH_URL="https://raw.githubusercontent.com/$GITHUB_REPO/refs/heads/main"
 RAW_URL="https://raw.githubusercontent.com/$GITHUB_REPO/refs/heads/main/$SCRIPT_NAME"
 
 set -e
