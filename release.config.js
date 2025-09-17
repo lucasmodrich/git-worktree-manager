@@ -1,7 +1,10 @@
 const fs = require('fs');
 
 module.exports = {
-    branches: ['main'],
+    branches: [
+        { name: 'main', prerelease: false }, // normal releases
+        { name: 'dev', prerelease: 'beta' }  // pre-release channel
+    ],
     plugins: [
         '@semantic-release/commit-analyzer',
         '@semantic-release/release-notes-generator',
@@ -25,6 +28,6 @@ module.exports = {
                 { path: 'release-package.tar.gz', label: 'Full Package' }
             ]
         }],
-    '@semantic-release/github'
+        '@semantic-release/github'
     ]
 };
