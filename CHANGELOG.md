@@ -1,3 +1,10 @@
+## [1.1.7](https://github.com/lucasmodrich/git-worktree-manager/compare/v1.1.6...v1.1.7) (2025-09-17)
+
+
+### Bug Fixes
+
+* **upgrade:** further tweaks to fix upgrade version checks ([8245237](https://github.com/lucasmodrich/git-worktree-manager/commit/824523744581f282aa3aed0e5e07db6c8d4975a8))
+
 ## [1.1.6](https://github.com/lucasmodrich/git-worktree-manager/compare/v1.1.5...v1.1.6) (2025-09-17)
 
 
