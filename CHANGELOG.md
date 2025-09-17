@@ -1,3 +1,32 @@
+## [1.0.1-beta.4](https://github.com/lucasmodrich/git-worktree-manager/compare/v1.0.1-beta.3...v1.0.1-beta.4) (2025-09-17)
+
+
+### Bug Fixes
+
+* improve script self-upgrade process. Now deploys to /home/modrich/.git-worktree-manager ([be2850b](https://github.com/lucasmodrich/git-worktree-manager/commit/be2850b87fe54e6e5a5b3606a47082dffa8bf450))
+
+## [1.0.1-beta.3](https://github.com/lucasmodrich/git-worktree-manager/compare/v1.0.1-beta.2...v1.0.1-beta.3) (2025-09-17)
+
+
+### Bug Fixes
+
+* ensure the version number update made to git-worktree-manager.sh is committed as part of the release process.' ([445b899](https://github.com/lucasmodrich/git-worktree-manager/commit/445b8997355bf0279e024e33f3c9649e62d88154))
+
+## [1.0.1-beta.2](https://github.com/lucasmodrich/git-worktree-manager/compare/v1.0.1-beta.1...v1.0.1-beta.2) (2025-09-17)
+
+
+### Bug Fixes
+
+* correcting management of the version in git-worktree-manager.sh' ([b292506](https://github.com/lucasmodrich/git-worktree-manager/commit/b2925060d90878fd1da6b0cd45a22dec3aa9cb86))
+* futher fixes for release management ([9956406](https://github.com/lucasmodrich/git-worktree-manager/commit/99564063e14d70366f8dede5e4385786d6ea144b))
+
+## [1.0.1-beta.1](https://github.com/lucasmodrich/git-worktree-manager/compare/v1.0.0...v1.0.1-beta.1) (2025-09-17)
+
+
+### Bug Fixes
+
+* Improve release process to trigger pre-release from dev branch. Also ensure version number in git-worktree-manager.sh is updated during the release process. ([4d7de9d](https://github.com/lucasmodrich/git-worktree-manager/commit/4d7de9d35bcf61ad92d363c93b9b5dd4d21cc0ba))
+
 # 1.0.0 (2025-09-17)
 
 
