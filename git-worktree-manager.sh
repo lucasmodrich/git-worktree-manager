@@ -135,7 +135,7 @@ Usage:
   $0 --prune                          # Prune stale worktrees
   $0 --version                        # Show script version
   $0 --upgrade                        # Upgrade to latest version
-  $0 --help                           # Show this help card
+  $0 --help (-h)                      # Show this help card
 
 Examples:
   $0 acme/webapp
@@ -151,7 +151,7 @@ EOF
 }
 
 # --- Mode: Help ---
-if [ "$1" == "--help" ]; then
+if [ "$1" == "--help" ] || [ "$1" == "-h" ]; then
     show_help
     exit 0
 fi
