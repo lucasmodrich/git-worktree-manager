@@ -205,9 +205,11 @@ check_upgrade_available_script() {
     echo "🌐 Remote version: $remote_version"
 
     if version_gt "$SCRIPT_VERSION" "$remote_version"; then
-        return 0
+        echo "$SCRIPT_VERSION > $remote_version"
+        return 1    # no upgrade available
     else
-        return 1 
+        echo "$SCRIPT_VERSION <= $remote_version"
+        return 0    # upgrade available
     fi
 }
 
@@ -224,33 +226,19 @@ show_version() {
 
 # --- Helper: Upgrade script ---
 upgrade_script() { 
-#    echo "🔍 Checking for newer version on GitHub..."
-#    #echo "Script Folder: $SCRIPT_FOLDER"
     mkdir -p "$SCRIPT_FOLDER"
 
-#    remote_version=$(curl -s "$RAW_URL" | grep '^SCRIPT_VERSION=' | cut -d'"' -f2)
-
-#    if [ -z "$remote_version" ]; then
-#        echo "❌ Could not retrieve remote version."
-#        exit 1
-#    fi
-
-#    echo "🔢 Local version: $SCRIPT_VERSION"
-#    echo "🌐 Remote version: $remote_version"
-
-    #if version_gt "$SCRIPT_VERSION" "$remote_version"; then
-#        echo "✅ You already have the latest version."
     if check_upgrade_available_script; then
-        echo "⬇️ Upgrading to version $remote_version..."
-        curl -s -O "$RAW_URL"
+        echo "⬇️ Upgrading to version $remote_version..."        
+        curl -s -o "$SCRIPT_FOLDER/$SCRIPT_NAME" "$RAW_URL"
         #mv "$SCRIPT_FOLDER/$SCRIPT_NAME.tmp" "$SCRIPT_FOLDER/$SCRIPT_NAME"
         chmod +x "$SCRIPT_FOLDER/$SCRIPT_NAME"
         echo "."
-        curl -s -O "$RAW_BRANCH_URL/README.md"
+        curl -s -o "$SCRIPT_FOLDER/README.md" "$RAW_BRANCH_URL/README.md"
         echo "."
-        curl -s -O "$RAW_BRANCH_URL/VERSION"
+        curl -s -o "$SCRIPT_FOLDER/VERSION" "$RAW_BRANCH_URL/VERSION"
         echo "."
-        curl -s -O "$RAW_BRANCH_URL/LICENCE"
+        curl -s -o "$SCRIPT_FOLDER/LICENCE" "$RAW_BRANCH_URL/LICENCE"
         echo "."
 
         echo "✅ Upgrade complete. Now running version $remote_version."
