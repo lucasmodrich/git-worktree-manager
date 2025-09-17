@@ -1,3 +1,10 @@
+## [1.0.1-beta.5](https://github.com/lucasmodrich/git-worktree-manager/compare/v1.0.1-beta.4...v1.0.1-beta.5) (2025-09-17)
+
+
+### Bug Fixes
+
+* correct the RAW_URL variable where the upgrade is pulled from. ([0002fe7](https://github.com/lucasmodrich/git-worktree-manager/commit/0002fe769ee789bff87fcd32190f0214c91d8e1c))
+
 ## [1.0.1-beta.4](https://github.com/lucasmodrich/git-worktree-manager/compare/v1.0.1-beta.3...v1.0.1-beta.4) (2025-09-17)
 
 
