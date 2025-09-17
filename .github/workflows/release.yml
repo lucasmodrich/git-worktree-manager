@@ -12,6 +12,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0  # required for tags
+          persist-credentials: true
 
       - uses: actions/setup-node@v4
         with:
@@ -20,6 +21,10 @@ jobs:
       - run: npm ci
 
       - run: tar -czf release-package.tar.gz git-worktree-manager.sh README.md LICENSE
+
+      - run: |
+          git fetch --tags
+          git tag -l
 
       - run: npx semantic-release
         env:
