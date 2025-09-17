@@ -16,7 +16,6 @@ It supports:
 
 ## 🧠 Versioning & Upgrade
 
-- Current version: `v0.1.0`
 - Check version:
   ```bash
   ./git-worktree-manager.sh --version
