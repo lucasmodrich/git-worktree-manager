@@ -2,6 +2,7 @@
 
 ## 📌 Overview
 `git-worktree-manager.sh` is a self-updating shell script for managing Git repositories using a **bare clone + worktree** workflow.
+I created this project following frustration using the standard tooling.
 
 It supports:
 
