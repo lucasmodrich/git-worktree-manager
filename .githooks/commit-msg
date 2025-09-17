@@ -1,0 +1,7 @@
+#!/bin/sh
+commit_msg_file=$1
+pattern='^(feat|fix|docs|chore|refactor|test|perf)(\(.+\))?: .{1,}$'
+if ! grep -qE "$pattern" "$commit_msg_file"; then
+  echo "❌ Commit message must follow Conventional Commits format"
+  exit 1
+fi
