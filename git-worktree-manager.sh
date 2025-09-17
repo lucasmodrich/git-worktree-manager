@@ -2,11 +2,11 @@
 #
 # git-worktree-manager.sh
 
-SCRIPT_VERSION="1.0.1"
+SCRIPT_VERSION="0.0.1-beta.4"
 SCRIPT_FOLDER="$HOME/.git-worktree-manager"
 SCRIPT_NAME="git-worktree-manager.sh"
 GITHUB_REPO="lucasmodrich/git-worktree-manager"
-RAW_URL="https://raw.githubusercontent.com/$GITHUB_REPO/main/$SCRIPT_NAME"
+RAW_URL="https://raw.githubusercontent.com/$GITHUB_REPO/refs/heads/main/$SCRIPT_NAME"
 
 set -e
 
