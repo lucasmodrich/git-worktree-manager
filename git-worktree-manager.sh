@@ -3,6 +3,7 @@
 # git-worktree-manager.sh
 
 SCRIPT_VERSION="1.0.1-beta.3"
+SCRIPT_FOLDER="$HOME/.git-worktree-manager"
 SCRIPT_NAME="git-worktree-manager.sh"
 GITHUB_REPO="lucasmodrich/git-worktree-manager"
 RAW_URL="https://raw.githubusercontent.com/$GITHUB_REPO/main/$SCRIPT_NAME"
@@ -97,6 +98,8 @@ show_version() {
 # --- Helper: Upgrade script ---
 upgrade_script() {
     echo "🔍 Checking for newer version on GitHub..."
+    echo "Script Folder: $SCRIPT_FOLDER"
+    mkdir -p "$SCRIPT_FOLDER"
 
     remote_version=$(curl -s "$RAW_URL" | grep '^SCRIPT_VERSION=' | cut -d'"' -f2)
 
@@ -112,9 +115,9 @@ upgrade_script() {
         echo "✅ You already have the latest version."
     else
         echo "⬇️ Upgrading to version $remote_version..."
-        curl -s -o "$SCRIPT_NAME.tmp" "$RAW_URL"
-        mv "$SCRIPT_NAME.tmp" "$SCRIPT_NAME"
-        chmod +x "$SCRIPT_NAME"
+        curl -s -o "$SCRIPT_FOLDER/$SCRIPT_NAME.tmp" "$RAW_URL"
+        mv "$SCRIPT_FOLDER/$SCRIPT_NAME.tmp" "$SCRIPT_FOLDER/$SCRIPT_NAME"
+        chmod +x "$SCRIPT_FOLDER/$SCRIPT_NAME"
         echo "✅ Upgrade complete. Now running version $remote_version."
     fi
     exit 0
