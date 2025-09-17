@@ -14,9 +14,18 @@ It supports:
 
 ---
 
+## 🚀 Installation
+
+By default `git-worktree-manager` will install and update itself into the `$HOME\.git-worktree-manager\` (`~\.git-worktree-manager`) folder. Its hard-wired for this presently. If you want to install it otherwise, you will need to clone or fork the repo and update it to your needs. If your changes are broadly useful, please consider raising a PR to submit them for inclusion here.
+
+
+To install directly from this GitHub repo, use the following command:
+```bash
+curl -sSL https://raw.githubusercontent.com/lucasmodrich/git-worktree-manager/refs/heads/main/git-worktree-manager.sh | bash -s -- --upgrade
+```
+
 ## 🧠 Versioning & Upgrade
 
-- Current version: `v0.1.0`
 - Check version:
   ```bash
   ./git-worktree-manager.sh --version
@@ -25,6 +34,19 @@ It supports:
   ```bash
   ./git-worktree-manager.sh --upgrade
   ```
+
+## Configure Git Alias
+If you want to utilise the `git-worktree-manager` via a Git alias, add the following to you `~/.gitconfig` file.
+```
+[alias]
+        wtm = "!bash $HOME/.git-worktree-manager/git-worktree-manager.sh"
+```
+
+Once the alias has been added to your `~/.gitconfig` file, you can invoke the `git-worktree-manager` using the following:
+```bash
+git wtm -h
+```
+> Note: the `--help` flag does not work when called via th `git` cli as it invokes the `git` cli Help.
 
 ---
 
@@ -162,6 +184,7 @@ chmod +x git-worktree-manager.sh
 ### Help Card
 ```bash
 ./git-worktree-manager.sh --help
+./git-worktree-manager.sh -h
 ```
 
 ---
@@ -182,6 +205,7 @@ git commit -m "Add login page"
 git push
 
 # Clean up
+cd ..
 ./git-worktree-manager.sh --remove feature/login-page
 ```
 
