@@ -204,12 +204,12 @@ check_upgrade_available_script() {
     echo "🔢 Local version: $SCRIPT_VERSION"
     echo "🌐 Remote version: $remote_version"
 
-    if version_gt "$SCRIPT_VERSION" "$remote_version"; then
-        echo "$SCRIPT_VERSION > $remote_version"
-        return 1    # no upgrade available
-    else
-        echo "$SCRIPT_VERSION <= $remote_version"
+    if version_gt "$remote_version" "$SCRIPT_VERSION"; then
+        echo "$remote_version > $SCRIPT_VERSION"
         return 0    # upgrade available
+    else
+        echo "$remote_version <= $SCRIPT_VERSION"
+        return 1    # no upgrade available
     fi
 }
 
@@ -217,7 +217,7 @@ check_upgrade_available_script() {
 # --- Helper: Show version ---
 show_version() {
     echo "git-worktree-manager.sh version $SCRIPT_VERSION"
-    if check_upgrade_available_script; then
+    if  check_upgrade_available_script; then
         echo "⬇️ Run '$0 --upgrade' to upgrade to version $remote_version."
     else        
         echo "✅ You already have the latest version."

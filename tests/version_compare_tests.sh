@@ -44,6 +44,9 @@ assert_gt "1.0.0" "1.0.0-rc.1"
 assert_not_gt "1.0.0+build.1" "1.0.0+other"
 assert_gt "1.0.0-alpha" "1.0.0-1"
 
+assert_not_gt "1.1.5" "1.1.5"
+assert_gt "1.1.6" "1.1.5"
+
 echo
 echo "Passed: $pass"
 echo "Failed: $fail"
