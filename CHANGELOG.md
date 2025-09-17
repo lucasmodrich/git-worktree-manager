@@ -1,3 +1,10 @@
+## [1.1.3](https://github.com/lucasmodrich/git-worktree-manager/compare/v1.1.2...v1.1.3) (2025-09-17)
+
+
+### Bug Fixes
+
+* Update git-worktree-manager.sh to echo progress of downloaded files ([e3c132a](https://github.com/lucasmodrich/git-worktree-manager/commit/e3c132a3c2ebe5eec361d22448b64bc7322dc61d))
+
 ## [1.1.2](https://github.com/lucasmodrich/git-worktree-manager/compare/v1.1.1...v1.1.2) (2025-09-17)
 
 

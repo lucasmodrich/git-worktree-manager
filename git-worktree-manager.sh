@@ -2,7 +2,7 @@
 #
 # git-worktree-manager.sh
 
-SCRIPT_VERSION="1.1.2"
+SCRIPT_VERSION="1.1.3"
 SCRIPT_FOLDER="$HOME/.git-worktree-manager"
 SCRIPT_NAME="git-worktree-manager.sh"
 GITHUB_REPO="lucasmodrich/git-worktree-manager"
