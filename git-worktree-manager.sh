@@ -278,102 +278,106 @@ EOF
 }
 
 # --- Mode: Help ---
-if [ "$1" == "--help" ] || [ "$1" == "-h" ]; then
-    show_help
-    exit 0
-fi
+# Only run CLI/top-level logic when executed directly (not when sourced)
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
 
-# --- Mode: Version ---
-if [ "$1" == "--version" ]; then
-    show_version
-    exit 0
-fi
+    if [ "$1" == "--help" ] || [ "$1" == "-h" ]; then
+        show_help
+        exit 0
+    fi
 
-# --- Mode: Upgrade ---
-if [ "$1" == "--upgrade" ]; then
-    upgrade_script
-fi
+    # --- Mode: Version ---
+    if [ "$1" == "--version" ]; then
+        show_version
+        exit 0
+    fi
 
-# --- Mode: List worktrees ---
-if [ "$1" == "--list" ]; then
-    list_worktrees
-    exit 0
-fi
+    # --- Mode: Upgrade ---
+    if [ "$1" == "--upgrade" ]; then
+        upgrade_script
+    fi
 
-# --- Mode: Prune worktrees ---
-if [ "$1" == "--prune" ]; then
-    prune_worktrees
-    exit 0
-fi
+    # --- Mode: List worktrees ---
+    if [ "$1" == "--list" ]; then
+        list_worktrees
+        exit 0
+    fi
 
-# --- Mode: Remove worktree and branch ---
-if [ "$1" == "--remove" ]; then
-    remove_worktree_and_branch "$2"
-    exit 0
-fi
+    # --- Mode: Prune worktrees ---
+    if [ "$1" == "--prune" ]; then
+        prune_worktrees
+        exit 0
+    fi
 
-# --- Mode: Create new branch worktree ---
-if [ "$1" == "--new-branch" ]; then
-    if [ -z "$2" ]; then
-        echo "Usage: $0 --new-branch <branch-name> [base-branch]"
+    # --- Mode: Remove worktree and branch ---
+    if [ "$1" == "--remove" ]; then
+        remove_worktree_and_branch "$2"
+        exit 0
+    fi
+
+    # --- Mode: Create new branch worktree ---
+    if [ "$1" == "--new-branch" ]; then
+        if [ -z "$2" ]; then
+            echo "Usage: $0 --new-branch <branch-name> [base-branch]"
+            exit 1
+        fi
+        create_new_branch_worktree "$2" "$3"
+        exit 0
+    fi
+
+    # --- Mode: Full setup ---
+    if [ -z "$1" ]; then
+        show_help
         exit 1
     fi
-    create_new_branch_worktree "$2" "$3"
-    exit 0
+
+    # Convert org/repo to full GitHub SSH URL
+    if [[ "$1" != git@github.com:* ]]; then
+        REPO_PATH="$1"
+        REPO_URL="git@github.com:$REPO_PATH.git"
+    else
+        REPO_URL="$1"
+        REPO_PATH=$(basename -s .git "$REPO_URL")
+    fi
+
+    REPO_NAME=$(basename -s .git "$REPO_PATH")
+
+    echo "📂 Creating project root: $REPO_NAME"
+    mkdir -p "$REPO_NAME"
+    cd "$REPO_NAME"
+
+    echo "📦 Cloning bare repository into .bare"
+    git clone --bare "$REPO_URL" .bare
+
+    echo "📝 Creating .git file pointing to .bare"
+    echo "gitdir: ./.bare" > .git
+
+    echo "⚙️ Configuring Git for auto remote tracking"
+    git config push.default current
+    git config branch.autosetupmerge always
+    git config branch.autosetuprebase always
+
+    echo "🔧 Ensuring all remote branches are fetched"
+    git config remote.origin.fetch "+refs/heads/*:refs/remotes/origin/*"
+
+    echo "📡 Fetching all remote branches"
+    git fetch --all --prune
+
+    DEFAULT_BRANCH=$(detect_default_branch)
+    if [ -z "$DEFAULT_BRANCH" ]; then
+        echo "❌ Could not detect default branch. Please specify manually."
+        exit 1
+    fi
+
+    echo "🌱 Creating initial worktree for branch: $DEFAULT_BRANCH"
+    if git show-ref --verify --quiet "refs/heads/$DEFAULT_BRANCH"; then
+        git worktree add "$DEFAULT_BRANCH" "$DEFAULT_BRANCH"
+    else
+        git worktree add "$DEFAULT_BRANCH" -b "$DEFAULT_BRANCH" --track "origin/$DEFAULT_BRANCH"
+        echo "☁️  Pushing new branch '$DEFAULT_BRANCH' to origin"
+        (cd "$DEFAULT_BRANCH" && git push -u origin "$DEFAULT_BRANCH")
+    fi
+
+    echo "✅ Setup complete!"
+    git worktree list
 fi
-
-# --- Mode: Full setup ---
-if [ -z "$1" ]; then
-    show_help
-    exit 1
-fi
-
-# Convert org/repo to full GitHub SSH URL
-if [[ "$1" != git@github.com:* ]]; then
-    REPO_PATH="$1"
-    REPO_URL="git@github.com:$REPO_PATH.git"
-else
-    REPO_URL="$1"
-    REPO_PATH=$(basename -s .git "$REPO_URL")
-fi
-
-REPO_NAME=$(basename -s .git "$REPO_PATH")
-
-echo "📂 Creating project root: $REPO_NAME"
-mkdir -p "$REPO_NAME"
-cd "$REPO_NAME"
-
-echo "📦 Cloning bare repository into .bare"
-git clone --bare "$REPO_URL" .bare
-
-echo "📝 Creating .git file pointing to .bare"
-echo "gitdir: ./.bare" > .git
-
-echo "⚙️ Configuring Git for auto remote tracking"
-git config push.default current
-git config branch.autosetupmerge always
-git config branch.autosetuprebase always
-
-echo "🔧 Ensuring all remote branches are fetched"
-git config remote.origin.fetch "+refs/heads/*:refs/remotes/origin/*"
-
-echo "📡 Fetching all remote branches"
-git fetch --all --prune
-
-DEFAULT_BRANCH=$(detect_default_branch)
-if [ -z "$DEFAULT_BRANCH" ]; then
-    echo "❌ Could not detect default branch. Please specify manually."
-    exit 1
-fi
-
-echo "🌱 Creating initial worktree for branch: $DEFAULT_BRANCH"
-if git show-ref --verify --quiet "refs/heads/$DEFAULT_BRANCH"; then
-    git worktree add "$DEFAULT_BRANCH" "$DEFAULT_BRANCH"
-else
-    git worktree add "$DEFAULT_BRANCH" -b "$DEFAULT_BRANCH" --track "origin/$DEFAULT_BRANCH"
-    echo "☁️  Pushing new branch '$DEFAULT_BRANCH' to origin"
-    (cd "$DEFAULT_BRANCH" && git push -u origin "$DEFAULT_BRANCH")
-fi
-
-echo "✅ Setup complete!"
-git worktree list
