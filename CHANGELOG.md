@@ -1,3 +1,10 @@
+## [1.0.1-beta.1](https://github.com/lucasmodrich/git-worktree-manager/compare/v1.0.0...v1.0.1-beta.1) (2025-09-17)
+
+
+### Bug Fixes
+
+* Improve release process to trigger pre-release from dev branch. Also ensure version number in git-worktree-manager.sh is updated during the release process. ([4d7de9d](https://github.com/lucasmodrich/git-worktree-manager/commit/4d7de9d35bcf61ad92d363c93b9b5dd4d21cc0ba))
+
 # 1.0.0 (2025-09-17)
 
 
