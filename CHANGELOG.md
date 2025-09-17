@@ -1,3 +1,10 @@
+# [1.1.0-beta.2](https://github.com/lucasmodrich/git-worktree-manager/compare/v1.1.0-beta.1...v1.1.0-beta.2) (2025-09-17)
+
+
+### Bug Fixes
+
+* merge conflict ([c080d08](https://github.com/lucasmodrich/git-worktree-manager/commit/c080d08e12f3fe1e8c1cdd696bf013c1b18324ba))
+
 ## [1.0.2](https://github.com/lucasmodrich/git-worktree-manager/compare/v1.0.1...v1.0.2) (2025-09-17)
 
 
