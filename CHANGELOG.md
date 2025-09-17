@@ -1,3 +1,11 @@
+## [1.0.2](https://github.com/lucasmodrich/git-worktree-manager/compare/v1.0.1...v1.0.2) (2025-09-17)
+
+
+### Bug Fixes
+
+* correct the RAW_URL variable where the upgrade is pulled from. ([0002fe7](https://github.com/lucasmodrich/git-worktree-manager/commit/0002fe769ee789bff87fcd32190f0214c91d8e1c))
+* merge conflict ([c080d08](https://github.com/lucasmodrich/git-worktree-manager/commit/c080d08e12f3fe1e8c1cdd696bf013c1b18324ba))
+
 ## [1.0.1](https://github.com/lucasmodrich/git-worktree-manager/compare/v1.0.0...v1.0.1) (2025-09-17)
 
 
