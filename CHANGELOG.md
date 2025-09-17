@@ -1,3 +1,10 @@
+## [1.1.1](https://github.com/lucasmodrich/git-worktree-manager/compare/v1.1.0...v1.1.1) (2025-09-17)
+
+
+### Bug Fixes
+
+* Update git-worktree-manager.sh to remove additional trailing \ from RAW_REPO_URL ([1cfea71](https://github.com/lucasmodrich/git-worktree-manager/commit/1cfea7195a0a6b76d087c6d75e39b24cb4def209))
+
 # [1.1.0](https://github.com/lucasmodrich/git-worktree-manager/compare/v1.0.2...v1.1.0) (2025-09-17)
 
 
