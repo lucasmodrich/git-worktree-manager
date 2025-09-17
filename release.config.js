@@ -25,9 +25,9 @@ module.exports = {
         }],
         ['@semantic-release/github', {
             assets: [
-                { path: 'git-worktree-manager.sh', label: 'Bash Script' },
-                { path: 'README.md', label: 'Documentation' },
-                { path: 'LICENCE', label: 'Licence' },
+                { path: 'git-worktree-manager.sh', label: 'git-worktree-manager.sh' },
+                { path: 'README.md', label: 'README.md' },
+                { path: 'LICENSE', label: 'License' },
                 { path: 'release-package.tar.gz', label: 'Full Package' }
             ]
         }],
