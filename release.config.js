@@ -17,9 +17,8 @@ module.exports = {
             }
         },
         ['@semantic-release/exec', {
-            prepareCmd: 'sed -i '/^SCRIPT_VERSION=/s/.*/SCRIPT_VERSION="${nextRelease.version}"/' git-worktree-manager.sh'
+            prepareCmd: "sed -i '/^SCRIPT_VERSION=/s/.*/SCRIPT_VERSION=\"${nextRelease.version}\"/' git-worktree-manager.sh"
         }],
-
         ['@semantic-release/git', {
             assets: ['CHANGELOG.md', 'VERSION'],
             message: 'chore(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}'
@@ -32,6 +31,5 @@ module.exports = {
                 { path: 'release-package.tar.gz', label: 'Full Package' }
             ]
         }],
-        '@semantic-release/github'
     ]
 };
