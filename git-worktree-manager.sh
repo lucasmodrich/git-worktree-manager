@@ -119,10 +119,13 @@ upgrade_script() {
         curl -s -O "$RAW_URL"
         #mv "$SCRIPT_FOLDER/$SCRIPT_NAME.tmp" "$SCRIPT_FOLDER/$SCRIPT_NAME"
         chmod +x "$SCRIPT_FOLDER/$SCRIPT_NAME"
-
+        echo "."
         curl -s -O "$RAW_BRANCH_URL/README.md"
+        echo "."
         curl -s -O "$RAW_BRANCH_URL/VERSION"
+        echo "."
         curl -s -O "$RAW_BRANCH_URL/LICENCE"
+        echo "."
 
         echo "✅ Upgrade complete. Now running version $remote_version."
     fi
