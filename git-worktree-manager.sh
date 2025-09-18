@@ -3,11 +3,15 @@
 # git-worktree-manager.sh
 
 SCRIPT_VERSION="1.1.7"
-SCRIPT_FOLDER="$HOME/.git-worktree-manager"
+# Allow override via environment variable, default to $HOME/.git-worktree-manager
+SCRIPT_FOLDER="${GIT_WORKTREE_MANAGER_HOME:-$HOME/.git-worktree-manager}"
 SCRIPT_NAME="git-worktree-manager.sh"
 GITHUB_REPO="lucasmodrich/git-worktree-manager"
 RAW_BRANCH_URL="https://raw.githubusercontent.com/$GITHUB_REPO/refs/heads/main"
 RAW_URL="https://raw.githubusercontent.com/$GITHUB_REPO/refs/heads/main/$SCRIPT_NAME"
+
+# Global flag for dry-run mode
+DRY_RUN=false
 
 set -e
 
@@ -41,8 +45,10 @@ version_gt() {
     fi
 
     # split major.minor.patch (missing parts treated as 0)
+    local oldIFS=$IFS
     IFS=. read -r -a ma <<< "$mainA"
     IFS=. read -r -a mb <<< "$mainB"
+    IFS=$oldIFS
 
     for i in 0 1 2; do
         na="${ma[i]:-0}"
@@ -69,8 +75,10 @@ version_gt() {
     fi
 
     # both have prerelease -> compare dot-separated identifiers
+    local oldIFS=$IFS
     IFS=. read -r -a pa <<< "$preA"
     IFS=. read -r -a pb <<< "$preB"
+    IFS=$oldIFS
     len=${#pa[@]}
     [[ ${#pb[@]} -gt $len ]] && len=${#pb[@]}
 
@@ -133,6 +141,22 @@ create_new_branch_worktree() {
         fi
     fi
 
+    if [ "$DRY_RUN" = true ]; then
+        echo "🔍 [DRY-RUN] Would create new branch worktree:"
+        echo "  Branch: $new_branch"
+        echo "  Base: $base_branch"
+        echo "🔍 [DRY-RUN] Would fetch latest from origin"
+
+        if git show-ref --verify --quiet "refs/heads/$new_branch"; then
+            echo "🔍 [DRY-RUN] Branch '$new_branch' exists locally — would create worktree from it"
+        else
+            echo "🔍 [DRY-RUN] Would create new branch '$new_branch' from '$base_branch'"
+            echo "🔍 [DRY-RUN] Would push new branch '$new_branch' to origin"
+        fi
+        echo "🔍 [DRY-RUN] Would list all worktrees"
+        return 0
+    fi
+
     echo "📡 Fetching latest from origin"
     git fetch --all --prune
 
@@ -166,15 +190,45 @@ prune_worktrees() {
 # --- Helper: Remove worktree and local branch ---
 remove_worktree_and_branch() {
     local branch="$1"
+    local remove_remote=false
 
     if [ -z "$branch" ]; then
-        echo "Usage: $0 --remove <branch-name>"
+        echo "Usage: $0 --remove <branch-name> [--remote]"
         exit 1
     fi
+
+    # Check for --remote flag in remaining arguments
+    shift
+    while [[ $# -gt 0 ]]; do
+        case $1 in
+            --remote)
+                remove_remote=true
+                shift
+                ;;
+            *)
+                echo "❌ Unknown option: $1"
+                echo "Usage: $0 --remove <branch-name> [--remote]"
+                exit 1
+                ;;
+        esac
+    done
 
     if ! git worktree list | grep -q "/$branch "; then
         echo "❌ Worktree for branch '$branch' not found."
         exit 1
+    fi
+
+    if [ "$DRY_RUN" = true ]; then
+        echo "🔍 [DRY-RUN] Would remove worktree '$branch'"
+        if git show-ref --verify --quiet "refs/heads/$branch"; then
+            echo "🔍 [DRY-RUN] Would delete local branch '$branch'"
+        fi
+        if [ "$remove_remote" = true ]; then
+            if git show-ref --verify --quiet "refs/remotes/origin/$branch"; then
+                echo "🔍 [DRY-RUN] Would delete remote branch 'origin/$branch'"
+            fi
+        fi
+        return 0
     fi
 
     echo "🗑 Removing worktree '$branch'"
@@ -185,6 +239,15 @@ remove_worktree_and_branch() {
         git branch -D "$branch"
     else
         echo "⚠️ Local branch '$branch' not found — nothing to delete."
+    fi
+
+    if [ "$remove_remote" = true ]; then
+        if git show-ref --verify --quiet "refs/remotes/origin/$branch"; then
+            echo "☁️ Deleting remote branch 'origin/$branch'"
+            git push origin --delete "$branch"
+        else
+            echo "⚠️ Remote branch 'origin/$branch' not found — nothing to delete."
+        fi
     fi
 
     echo "✅ Removal complete."
@@ -198,7 +261,7 @@ check_upgrade_available_script() {
 
     if [ -z "$remote_version" ]; then
         echo "❌ Could not retrieve remote version."
-        exit 0
+        return 1  # Return failure instead of exit 0
     fi
 
     echo "🔢 Local version: $SCRIPT_VERSION"
@@ -229,17 +292,34 @@ upgrade_script() {
     mkdir -p "$SCRIPT_FOLDER"
 
     if check_upgrade_available_script; then
-        echo "⬇️ Upgrading to version $remote_version..."        
-        curl -s -o "$SCRIPT_FOLDER/$SCRIPT_NAME" "$RAW_URL"
-        #mv "$SCRIPT_FOLDER/$SCRIPT_NAME.tmp" "$SCRIPT_FOLDER/$SCRIPT_NAME"
+        echo "⬇️ Upgrading to version $remote_version..."
+
+        # Download with error checking
+        if ! curl -fsSL -o "$SCRIPT_FOLDER/$SCRIPT_NAME.tmp" "$RAW_URL"; then
+            echo "❌ Failed to download script"
+            exit 1
+        fi
+        mv "$SCRIPT_FOLDER/$SCRIPT_NAME.tmp" "$SCRIPT_FOLDER/$SCRIPT_NAME"
         chmod +x "$SCRIPT_FOLDER/$SCRIPT_NAME"
-        echo "."
-        curl -s -o "$SCRIPT_FOLDER/README.md" "$RAW_BRANCH_URL/README.md"
-        echo "."
-        curl -s -o "$SCRIPT_FOLDER/VERSION" "$RAW_BRANCH_URL/VERSION"
-        echo "."
-        curl -s -o "$SCRIPT_FOLDER/LICENCE" "$RAW_BRANCH_URL/LICENCE"
-        echo "."
+        echo "✓ Script downloaded"
+
+        if ! curl -fsSL -o "$SCRIPT_FOLDER/README.md" "$RAW_BRANCH_URL/README.md"; then
+            echo "⚠️  Failed to download README.md (continuing)"
+        else
+            echo "✓ README.md downloaded"
+        fi
+
+        if ! curl -fsSL -o "$SCRIPT_FOLDER/VERSION" "$RAW_BRANCH_URL/VERSION"; then
+            echo "⚠️  Failed to download VERSION (continuing)"
+        else
+            echo "✓ VERSION downloaded"
+        fi
+
+        if ! curl -fsSL -o "$SCRIPT_FOLDER/LICENSE" "$RAW_BRANCH_URL/LICENSE"; then
+            echo "⚠️  Failed to download LICENSE (continuing)"
+        else
+            echo "✓ LICENSE downloaded"
+        fi
 
         echo "✅ Upgrade complete. Now running version $remote_version."
     else
@@ -257,29 +337,65 @@ show_help() {
 Usage:
   $0 <org>/<repo>                     # Full setup from GitHub
   $0 --new-branch <branch> [base]     # Create new branch worktree
-  $0 --remove <branch>                # Remove worktree and local branch
+  $0 --remove <branch> [--remote]     # Remove worktree and local branch
   $0 --list                           # List active worktrees
   $0 --prune                          # Prune stale worktrees
   $0 --version                        # Show script version
   $0 --upgrade                        # Upgrade to latest version
   $0 --help (-h)                      # Show this help card
 
+Global Options:
+  --dry-run                           # Preview actions without executing
+
 Examples:
   $0 acme/webapp
   $0 --new-branch feature/login-page
-  $0 --remove feature/login-page
+  $0 --remove feature/login-page --remote
+  $0 --dry-run --new-branch feature/test
 
 Notes:
   - Run from repo root (where .git points to .bare)
   - New branches are pushed to GitHub automatically
-  - Remote branch is not deleted by --remove
+  - Use --remote with --remove to also delete the remote branch
+  - Installation directory: ${SCRIPT_FOLDER}
 
 EOF
 }
 
 # --- Mode: Help ---
+# --- Helper: Execute command with dry-run support ---
+run_command() {
+    if [ "$DRY_RUN" = true ]; then
+        echo "🔍 [DRY-RUN] Would execute: $*"
+    else
+        "$@"
+    fi
+}
+
 # Only run CLI/top-level logic when executed directly (not when sourced)
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+
+    # Parse global options from anywhere in the argument list
+    FILTERED_ARGS=()
+    while [[ $# -gt 0 ]]; do
+        case $1 in
+            --dry-run)
+                DRY_RUN=true
+                shift
+                ;;
+            --help|-h)
+                show_help
+                exit 0
+                ;;
+            *)
+                FILTERED_ARGS+=("$1")
+                shift
+                ;;
+        esac
+    done
+
+    # Restore filtered arguments
+    set -- "${FILTERED_ARGS[@]}"
 
     if [ "$1" == "--help" ] || [ "$1" == "-h" ]; then
         show_help
@@ -311,7 +427,8 @@ if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
 
     # --- Mode: Remove worktree and branch ---
     if [ "$1" == "--remove" ]; then
-        remove_worktree_and_branch "$2"
+        shift
+        remove_worktree_and_branch "$@"
         exit 0
     fi
 
@@ -331,16 +448,27 @@ if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
         exit 1
     fi
 
-    # Convert org/repo to full GitHub SSH URL
+    # Validate and convert org/repo to full GitHub SSH URL
     if [[ "$1" != git@github.com:* ]]; then
         REPO_PATH="$1"
+        # Validate org/repo format
+        if ! [[ "$REPO_PATH" =~ ^[a-zA-Z0-9._-]+/[a-zA-Z0-9._-]+$ ]]; then
+            echo "❌ Invalid repository format. Expected: org/repo or git@github.com:org/repo.git"
+            echo "   Examples: acme/webapp, user123/my-project"
+            exit 1
+        fi
         REPO_URL="git@github.com:$REPO_PATH.git"
     else
         REPO_URL="$1"
-        REPO_PATH=$(basename -s .git "$REPO_URL")
+        # Extract repo path from SSH URL
+        if ! [[ "$REPO_URL" =~ ^git@github\.com:([a-zA-Z0-9._-]+/[a-zA-Z0-9._-]+)\.git$ ]]; then
+            echo "❌ Invalid GitHub SSH URL format. Expected: git@github.com:org/repo.git"
+            exit 1
+        fi
+        REPO_PATH="${BASH_REMATCH[1]}"
     fi
 
-    REPO_NAME=$(basename -s .git "$REPO_PATH")
+    REPO_NAME=$(basename "$REPO_PATH")
 
     echo "📂 Creating project root: $REPO_NAME"
     mkdir -p "$REPO_NAME"
