@@ -141,6 +141,22 @@ create_new_branch_worktree() {
         fi
     fi
 
+    if [ "$DRY_RUN" = true ]; then
+        echo "🔍 [DRY-RUN] Would create new branch worktree:"
+        echo "  Branch: $new_branch"
+        echo "  Base: $base_branch"
+        echo "🔍 [DRY-RUN] Would fetch latest from origin"
+
+        if git show-ref --verify --quiet "refs/heads/$new_branch"; then
+            echo "🔍 [DRY-RUN] Branch '$new_branch' exists locally — would create worktree from it"
+        else
+            echo "🔍 [DRY-RUN] Would create new branch '$new_branch' from '$base_branch'"
+            echo "🔍 [DRY-RUN] Would push new branch '$new_branch' to origin"
+        fi
+        echo "🔍 [DRY-RUN] Would list all worktrees"
+        return 0
+    fi
+
     echo "📡 Fetching latest from origin"
     git fetch --all --prune
 
@@ -359,7 +375,8 @@ run_command() {
 # Only run CLI/top-level logic when executed directly (not when sourced)
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
 
-    # Parse global options first
+    # Parse global options from anywhere in the argument list
+    FILTERED_ARGS=()
     while [[ $# -gt 0 ]]; do
         case $1 in
             --dry-run)
@@ -371,10 +388,14 @@ if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
                 exit 0
                 ;;
             *)
-                break
+                FILTERED_ARGS+=("$1")
+                shift
                 ;;
         esac
     done
+
+    # Restore filtered arguments
+    set -- "${FILTERED_ARGS[@]}"
 
     if [ "$1" == "--help" ] || [ "$1" == "-h" ]; then
         show_help

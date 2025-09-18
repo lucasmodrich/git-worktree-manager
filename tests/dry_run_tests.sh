@@ -47,6 +47,11 @@ test_output "Dry-run shows validation error" "Invalid repository format" --dry-r
 # Test dry-run argument parsing
 test_output "Dry-run version check" "git-worktree-manager.sh version" --dry-run --version
 
+# Test dry-run argument order flexibility (regression test for the bug you found)
+test_output "Dry-run at end of arguments" "DRY-RUN.*Would create new branch worktree" --new-branch test-branch main --dry-run
+test_output "Dry-run at beginning of arguments" "DRY-RUN.*Would create new branch worktree" --dry-run --new-branch test-branch2 main
+test_output "Dry-run in middle of arguments" "DRY-RUN.*Would create new branch worktree" --new-branch --dry-run test-branch3 main
+
 echo "Summary:"
 echo "Passed: $pass"
 echo "Failed: $fail"

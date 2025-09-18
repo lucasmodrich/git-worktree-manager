@@ -213,8 +213,9 @@ Preview actions without executing them:
 # Preview repository setup
 ./git-worktree-manager.sh --dry-run acme/webapp
 
-# Preview branch creation
+# Preview branch creation (--dry-run can be anywhere in the command)
 ./git-worktree-manager.sh --dry-run --new-branch feature/test
+./git-worktree-manager.sh --new-branch feature/test main --dry-run
 
 # Preview branch removal
 ./git-worktree-manager.sh --dry-run --remove feature/old-branch --remote
@@ -296,7 +297,7 @@ The script includes a comprehensive test suite to ensure reliability:
 ./tests/dry_run_tests.sh             # Dry-run functionality
 ```
 
-Current test coverage: **33 tests, 100% passing** ✅
+Current test coverage: **36 tests, 100% passing** ✅
 
 ---
 
