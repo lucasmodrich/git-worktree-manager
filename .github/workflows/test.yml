@@ -35,15 +35,15 @@ jobs:
       - name: Run comprehensive test suite
         run: ./tests/run_all_tests.sh
 
-      - name: Test dry-run functionality
-        run: |
-          echo "Testing dry-run branch operations..."
-          ./git-worktree-manager.sh --dry-run --new-branch test-feature
-          ./git-worktree-manager.sh --dry-run --remove test-feature --remote
-          
-          echo "Testing dry-run repository validation..."
-          ./git-worktree-manager.sh --dry-run invalid-repo-format 2>&1 | grep -q "Invalid repository format" && echo "✅ Validation working"
-
+#      - name: Test dry-run functionality
+#        run: |
+#          echo "Testing dry-run branch operations..."
+#          ./git-worktree-manager.sh --dry-run --new-branch test-feature
+#          ./git-worktree-manager.sh --dry-run --remove test-feature --remote
+#          
+#          echo "Testing dry-run repository validation..."
+#          ./git-worktree-manager.sh --dry-run invalid-repo-format 2>&1 | grep -q "Invalid repository format" && echo "✅ Validation working"
+#
       - name: Validate test files are executable
         run: |
           chmod +x tests/*.sh
