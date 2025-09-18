@@ -158,7 +158,7 @@ create_new_branch_worktree() {
     fi
 
     echo "📡 Fetching latest from origin"
-    git fetch --all --prune
+    git fetch --all --prune --progress
 
     if git show-ref --verify --quiet "refs/heads/$new_branch"; then
         echo "📂 Branch '$new_branch' exists locally — creating worktree from it"
@@ -475,7 +475,7 @@ if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
     cd "$REPO_NAME"
 
     echo "📦 Cloning bare repository into .bare"
-    git clone --bare "$REPO_URL" .bare
+    git clone --bare --progress "$REPO_URL" .bare
 
     echo "📝 Creating .git file pointing to .bare"
     echo "gitdir: ./.bare" > .git
@@ -489,7 +489,7 @@ if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
     git config remote.origin.fetch "+refs/heads/*:refs/remotes/origin/*"
 
     echo "📡 Fetching all remote branches"
-    git fetch --all --prune
+    git fetch --all --prune --progress
 
     DEFAULT_BRANCH=$(detect_default_branch)
     if [ -z "$DEFAULT_BRANCH" ]; then
