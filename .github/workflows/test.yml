@@ -1,0 +1,87 @@
+name: Test
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+      - dev
+  workflow_dispatch:  # Allow manual triggering
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Make script executable
+        run: chmod +x git-worktree-manager.sh
+
+      - name: Validate script syntax
+        run: bash -n git-worktree-manager.sh
+
+      - name: Test script help output
+        run: ./git-worktree-manager.sh --help
+
+      - name: Test script version output
+        run: ./git-worktree-manager.sh --version
+
+      - name: Run comprehensive test suite
+        run: ./tests/run_all_tests.sh
+
+      - name: Test dry-run functionality
+        run: |
+          echo "Testing dry-run branch operations..."
+          ./git-worktree-manager.sh --dry-run --new-branch test-feature
+          ./git-worktree-manager.sh --dry-run --remove test-feature --remote
+          
+          echo "Testing dry-run repository validation..."
+          ./git-worktree-manager.sh --dry-run invalid-repo-format 2>&1 | grep -q "Invalid repository format" && echo "✅ Validation working"
+
+      - name: Validate test files are executable
+        run: |
+          chmod +x tests/*.sh
+          for test_file in tests/*.sh; do
+            echo "Validating syntax: $test_file"
+            bash -n "$test_file"
+          done
+
+      - name: Check for common issues
+        run: |
+          echo "Checking for TODO comments..."
+          if grep -n "TODO\|FIXME\|XXX" git-worktree-manager.sh; then
+            echo "⚠️  Found TODO/FIXME comments - review needed"
+          else
+            echo "✅ No TODO/FIXME comments found"
+          fi
+          
+          echo "Checking for hardcoded paths..."
+          if grep -n "/tmp\|/home\|/Users" git-worktree-manager.sh | grep -v "SCRIPT_FOLDER\|HOME"; then
+            echo "⚠️  Found potential hardcoded paths"
+            exit 1
+          else
+            echo "✅ No hardcoded paths found"
+          fi
+
+  validate-workflow:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Validate workflow files
+        run: |
+          echo "Validating GitHub Actions workflow syntax..."
+          for workflow in .github/workflows/*.yml; do
+            echo "Checking: $workflow"
+            # Basic YAML syntax validation
+            python3 -c "import yaml; yaml.safe_load(open('$workflow'))"
+          done
+          echo "✅ All workflow files are valid YAML"
