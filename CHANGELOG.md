@@ -1,3 +1,15 @@
+# [1.3.0](https://github.com/lucasmodrich/git-worktree-manager/compare/v1.2.0...v1.3.0) (2025-09-18)
+
+
+### Bug Fixes
+
+* **test:** comment out dry-run tests for PRs as they are not working (yet) as intended. Need some more time to ponder these. ([d90904c](https://github.com/lucasmodrich/git-worktree-manager/commit/d90904c712745215d41a55e76e56e394c6c46fa9))
+
+
+### Features
+
+* add progress indicators and GitHub Actions PR testing ([07fda81](https://github.com/lucasmodrich/git-worktree-manager/commit/07fda81ee12d1186b3d213f8b20d7a91f62d7063))
+
 # [1.2.0](https://github.com/lucasmodrich/git-worktree-manager/compare/v1.1.7...v1.2.0) (2025-09-18)
 
 

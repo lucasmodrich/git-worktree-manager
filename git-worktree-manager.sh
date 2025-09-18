@@ -2,7 +2,7 @@
 #
 # git-worktree-manager.sh
 
-SCRIPT_VERSION="1.2.0"
+SCRIPT_VERSION="1.3.0"
 # Allow override via environment variable, default to $HOME/.git-worktree-manager
 SCRIPT_FOLDER="${GIT_WORKTREE_MANAGER_HOME:-$HOME/.git-worktree-manager}"
 SCRIPT_NAME="git-worktree-manager.sh"
