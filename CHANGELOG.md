@@ -1,3 +1,15 @@
+# [1.2.0](https://github.com/lucasmodrich/git-worktree-manager/compare/v1.1.7...v1.2.0) (2025-09-18)
+
+
+### Bug Fixes
+
+* resolve --dry-run argument parsing bug ([8187b69](https://github.com/lucasmodrich/git-worktree-manager/commit/8187b69e48581ab65d66f5359fdb6f65e4d7e7ee))
+
+
+### Features
+
+* add major improvements to git-worktree-manager script ([c447df5](https://github.com/lucasmodrich/git-worktree-manager/commit/c447df550af99f638f82dba65bb4f9d2e90c8dbd))
+
 ## [1.1.7](https://github.com/lucasmodrich/git-worktree-manager/compare/v1.1.6...v1.1.7) (2025-09-17)
 
 
