@@ -4,7 +4,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Repository Overview
 
-This repository contains `git-worktree-manager.sh`, a self-updating Bash script that simplifies Git worktree management using a bare clone + worktree workflow. The script provides commands for repository setup, branch creation, worktree management, and self-updating.
+This repository contains the Git Worktree Manager, available in two implementations:
+- **Go CLI: `gwtm`** (Primary) - Fast, cross-platform compiled binary with enhanced UX
+- **Bash Script: `git-worktree-manager.sh`** (Legacy) - Single-file shell script for maximum portability
+
+Both implementations simplify Git worktree management using a bare clone + worktree workflow, providing commands for repository setup, branch creation, worktree management, and self-updating.
 
 ## Key Architecture
 
@@ -30,9 +34,28 @@ This repository contains `git-worktree-manager.sh`, a self-updating Bash script 
 
 ## Common Commands
 
+### Building the Go CLI
+```bash
+# Build the binary (creates 'gwtm' executable)
+make build
+
+# Or use go directly
+go build -o gwtm ./cmd/git-worktree-manager
+
+# Install to $GOPATH/bin or $HOME/.git-worktree-manager/
+make install
+
+# Test the binary
+./gwtm --help
+./gwtm version
+```
+
 ### Testing
 ```bash
-# Run version comparison tests
+# Run Go tests
+go test ./...
+
+# Run version comparison tests (Bash)
 ./tests/version_compare_tests.sh
 ```
 
@@ -43,9 +66,10 @@ npm ci
 
 # The actual release is automated via GitHub Actions when pushing to main
 # Semantic Release handles versioning, changelog, and GitHub releases
+# GoReleaser builds multi-platform binaries (Linux, macOS, Windows)
 ```
 
-### Script Development
+### Bash Script Development
 ```bash
 # Make script executable
 chmod +x git-worktree-manager.sh

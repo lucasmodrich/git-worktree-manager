@@ -1,8 +1,11 @@
 # Git Worktree Manager
 
 ## 📌 Overview
-`git-worktree-manager.sh` is a self-updating shell script for managing Git repositories using a **bare clone + worktree** workflow.
-I created this project following frustration using the standard tooling.
+Git Worktree Manager is a tool for managing Git repositories using a **bare clone + worktree** workflow.
+
+Available in two implementations:
+- **🚀 Go CLI** (Primary) - Fast, cross-platform compiled binary with enhanced UX
+- **🐚 Bash Script** (Legacy) - Single-file shell script for maximum portability
 
 It supports:
 
@@ -19,23 +22,92 @@ It supports:
 
 ## 🚀 Installation
 
-By default `git-worktree-manager` will install and update itself into the `$HOME/.git-worktree-manager/` (`~/.git-worktree-manager`) folder.
+### Go CLI (Recommended)
+
+#### Download Pre-built Binary
+```bash
+# Download latest release for your platform
+# Linux amd64
+curl -L https://github.com/lucasmodrich/git-worktree-manager/releases/latest/download/gwtm_Linux_x86_64 -o gwtm
+chmod +x gwtm
+sudo mv gwtm /usr/local/bin/
+
+# macOS Apple Silicon (M1/M2)
+curl -L https://github.com/lucasmodrich/git-worktree-manager/releases/latest/download/gwtm_Darwin_arm64 -o gwtm
+chmod +x gwtm
+sudo mv gwtm /usr/local/bin/
+
+# macOS Intel
+curl -L https://github.com/lucasmodrich/git-worktree-manager/releases/latest/download/gwtm_Darwin_x86_64 -o gwtm
+chmod +x gwtm
+sudo mv gwtm /usr/local/bin/
+
+# Windows (PowerShell)
+# Download gwtm.exe from releases page and add to PATH
+```
+
+#### Build from Source
+```bash
+# Clone repository
+git clone https://github.com/lucasmodrich/git-worktree-manager.git
+cd git-worktree-manager
+
+# Build with Go 1.21+
+make build
+
+# Or use go directly
+go build -o gwtm ./cmd/git-worktree-manager
+
+# Install to $GOPATH/bin or custom location
+make install
+```
+
+#### Self-Upgrade
+```bash
+gwtm upgrade
+```
+
+### Bash Script (Legacy)
+
+To install the Bash version directly from GitHub:
+```bash
+curl -sSL https://raw.githubusercontent.com/lucasmodrich/git-worktree-manager/refs/heads/main/git-worktree-manager.sh | bash -s -- --upgrade
+```
 
 ### Custom Installation Directory
 
-You can customize the installation directory by setting the `GIT_WORKTREE_MANAGER_HOME` environment variable:
+Both implementations respect the `GIT_WORKTREE_MANAGER_HOME` environment variable:
 
 ```bash
 export GIT_WORKTREE_MANAGER_HOME="/opt/git-tools"
-./git-worktree-manager.sh --upgrade
+gwtm upgrade  # Go version
+# OR
+./git-worktree-manager.sh --upgrade  # Bash version
 ```
 
-This will install the script to `/opt/git-tools/` instead of the default location.
+Default installation directory: `$HOME/.git-worktree-manager/`
 
+---
 
-To install directly from this GitHub repo, use the following command:
+## 🔄 Migration from v1.3.0 to v1.4.0
+
+Starting from version 1.4.0, the Go CLI binary is renamed from `git-worktree-manager` to `gwtm` for improved usability.
+
+**The Bash script (`git-worktree-manager.sh`) is unchanged.**
+
+### For Existing Users
+
+If you have scripts or aliases referencing the old binary name, create a symlink for backward compatibility:
+
 ```bash
-curl -sSL https://raw.githubusercontent.com/lucasmodrich/git-worktree-manager/refs/heads/main/git-worktree-manager.sh | bash -s -- --upgrade
+# After installing gwtm
+ln -s $(which gwtm) /usr/local/bin/git-worktree-manager
+```
+
+Or update your scripts to use the new binary name:
+```bash
+# OLD: git-worktree-manager <command>
+# NEW: gwtm <command>
 ```
 
 ## 🧠 Versioning & Upgrade
@@ -137,15 +209,22 @@ GitHub Remote (origin)
 
 ## 🚀 Usage
 
-### Make executable
+> **Note**: Examples below use the Go CLI (`gwtm`). For Bash version, use `./git-worktree-manager.sh` instead.
+
+### Get Help
 ```bash
-chmod +x git-worktree-manager.sh
+gwtm --help
+gwtm <command> --help
 ```
 
 ---
 
 ### Full Setup
 ```bash
+# Go CLI
+gwtm setup your-org/your-repo
+
+# Bash Script
 ./git-worktree-manager.sh your-org/your-repo
 ```
 
@@ -153,6 +232,10 @@ chmod +x git-worktree-manager.sh
 
 ### Create New Branch
 ```bash
+# Go CLI
+gwtm new-branch <branch> [base]
+
+# Bash Script
 ./git-worktree-manager.sh --new-branch <branch> [base]
 ```
 
@@ -161,38 +244,47 @@ chmod +x git-worktree-manager.sh
 ### Remove Worktree + Branch
 ```bash
 # Remove worktree and local branch only
-./git-worktree-manager.sh --remove <branch>
+gwtm remove <branch>
 
 # Remove worktree, local branch, AND remote branch
-./git-worktree-manager.sh --remove <branch> --remote
+gwtm remove <branch> --remote
 ```
 
 ---
 
 ### List Worktrees
 ```bash
-./git-worktree-manager.sh --list
+gwtm list
 ```
 
 ---
 
 ### Prune Stale Worktrees
 ```bash
-./git-worktree-manager.sh --prune
+gwtm prune
 ```
 
 ---
 
 ### Show Version
 ```bash
-./git-worktree-manager.sh --version
+gwtm version
 ```
 
 ---
 
-### Upgrade Script
+### Upgrade to Latest
 ```bash
-./git-worktree-manager.sh --upgrade
+gwtm upgrade
+```
+
+---
+
+### Dry-Run Mode (Preview Actions)
+```bash
+# Preview any destructive operation without executing
+gwtm --dry-run setup test-org/test-repo
+gwtm --dry-run remove my-branch --remote
 ```
 
 ---

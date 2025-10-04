@@ -2,19 +2,33 @@
 
 ## Core Principles
 
-### I. Single-File Portability (NON-NEGOTIABLE)
-**All functionality MUST remain in a single, self-contained bash script.**
+### I. Multi-Implementation Strategy (MANDATORY)
+**The tool MUST be available in multiple implementation forms to serve different user needs.**
 
-- The entire application lives in `git-worktree-manager.sh` (one file, ~500 lines)
-- Zero external dependencies beyond: bash 4.0+, git 2.0+, curl, standard Unix tools (grep, sed, etc.)
-- Script MUST be distributable as a single file via curl/wget
+**A. Canonical Bash Implementation** (Legacy support - MAINTAINED)
+- `git-worktree-manager.sh` remains available as single-file Bash script
+- Zero external dependencies beyond: bash 4.0+, git 2.0+, curl, standard Unix tools
+- Distributable as a single file via curl/wget
+- Maintained for users who prefer shell scripts or have constrained environments
+- Feature parity NOT required - may receive only critical bug fixes
+- Self-updating capability maintained
+
+**B. Primary Go Implementation** (Current development focus - ACTIVE)
+- Go CLI application using Cobra framework for command-line interface
+- Compiled binaries for Linux, macOS, and Windows
+- All existing features from Bash version MUST be implemented
 - Installation directory MUST be configurable via `GIT_WORKTREE_MANAGER_HOME` environment variable (default: `$HOME/.git-worktree-manager`)
-- No libraries, no modules, no external config files required for core functionality
-- Self-updating capability MUST be maintained (fetches from GitHub main branch)
+- Self-updating capability MUST be maintained (fetches from GitHub releases)
+- Superior performance, error handling, and user experience compared to Bash version
 
-### II. Bash Best Practices (MANDATORY)
-**Code quality and safety standards are non-negotiable.**
+**C. Implementation Compatibility**
+- Both implementations MUST support identical CLI interface (command compatibility)
+- Configuration (environment variables, directory structure) MUST be shared
+- Users MUST be able to switch between implementations without workflow changes
 
+### II. Language-Specific Best Practices (MANDATORY)
+
+**A. Bash Best Practices** (for git-worktree-manager.sh)
 - **Error Handling**: `set -e` required at script start; all functions must handle errors gracefully
 - **Variable Quoting**: Always use `"$variable"` to prevent word splitting
 - **Conditionals**: Use `[[ ]]` for tests (bash-specific), NOT `[ ]` (POSIX)
@@ -25,20 +39,42 @@
 - **IFS Safety**: Save and restore IFS when modifying: `local oldIFS=$IFS; IFS=...; IFS=$oldIFS`
 - **Comments**: Use `# ---` for section headers, `#` for inline explanations
 
+**B. Go Best Practices** (for primary implementation)
+- **Error Handling**: Return errors, never panic in production code; use custom error types
+- **CLI Framework**: Use Cobra for command structure and flag parsing
+- **Project Structure**: Follow standard Go layout (cmd/, internal/, pkg/)
+- **Dependency Management**: Use Go modules; minimize external dependencies
+- **Code Style**: Follow `gofmt` and `golint` standards
+- **Testing**: Use standard `testing` package; table-driven tests preferred
+- **Naming**: Exported names use PascalCase; unexported use camelCase
+- **Comments**: Godoc-style comments for all exported functions/types
+- **Concurrency**: Use goroutines and channels appropriately; avoid race conditions
+
 ### III. Test-First Development (NON-NEGOTIABLE)
 **All new functionality requires test coverage BEFORE implementation.**
 
+**A. Common Requirements (Both Implementations)**
 - **TDD Workflow**: Write test → Get user approval → Verify test fails → Implement → Verify test passes
-- Test files in `tests/` directory using bash with `set -euo pipefail`
 - All tests MUST pass (100% success rate) before merge
-- Test naming: `*_tests.sh` pattern
-- Unified test runner: `./tests/run_all_tests.sh` runs all suites
-- Output format: Emoji indicators (🧪 ▶️ ✅ ❌ 📊) for readability
 - Test coverage requirements:
   - Core functionality (version comparison, branch operations, worktree management)
   - Input validation and sanitization
   - Dry-run mode verification
   - Error handling paths
+
+**B. Bash Implementation Testing**
+- Test files in `tests/bash/` directory using bash with `set -euo pipefail`
+- Test naming: `*_tests.sh` pattern
+- Unified test runner: `./tests/bash/run_all_tests.sh`
+- Output format: Emoji indicators (🧪 ▶️ ✅ ❌ 📊) for readability
+
+**C. Go Implementation Testing**
+- Test files colocated with source: `*_test.go` pattern
+- Use standard `testing` package and table-driven tests
+- Test runner: `go test ./...` for all packages
+- Coverage requirement: >80% for core packages
+- Integration tests in `tests/integration/`
+- Contract tests verify CLI compatibility with Bash version
 
 ### IV. User Safety & Transparency (MANDATORY)
 **Users must be able to preview and understand all operations.**
@@ -66,7 +102,8 @@
   - Types: `feat`, `fix`, `docs`, `chore`, `test`, `refactor`
   - Breaking changes: Include `BREAKING CHANGE:` in commit body OR `!` after type
 - **Automated Versioning**:
-  - `SCRIPT_VERSION` at line 5 MUST be updated by semantic-release ONLY
+  - Bash: `SCRIPT_VERSION` at line 5 updated by semantic-release
+  - Go: Version embedded at build time via `-ldflags`
   - `VERSION` file maintained by CI/CD
   - `CHANGELOG.md` auto-generated from commits
 - **Version Bumping**:
@@ -74,8 +111,11 @@
   - MINOR: New features (new flags, commands)
   - PATCH: Bug fixes, documentation, refactoring
 - **Release Assets**: GitHub releases MUST include:
-  - `git-worktree-manager.sh` (primary asset)
+  - `git-worktree-manager.sh` (Bash implementation)
+  - Go binaries: `git-worktree-manager-linux-amd64`, `git-worktree-manager-darwin-amd64`, `git-worktree-manager-windows-amd64.exe`
+  - Go binaries with ARM support: `git-worktree-manager-linux-arm64`, `git-worktree-manager-darwin-arm64`
   - `README.md`, `LICENSE`, `VERSION`
+  - Checksums file: `checksums.txt` (SHA256 for all binaries)
   - `release-package.tar.gz` (full package)
 - **Branch Strategy**:
   - `main`: Stable releases
@@ -133,18 +173,31 @@
 ## Technical Constraints
 
 ### Supported Platforms
+**Bash Implementation:**
 - **Primary**: Linux (Ubuntu/Debian tested)
-- **Secondary**: macOS (should work, best-effort support)
-- **Unsupported**: Windows (unless WSL/Git Bash)
+- **Secondary**: macOS (best-effort support)
+- **Limited**: Windows (WSL/Git Bash only)
 
-### Bash Version Requirements
+**Go Implementation:**
+- **Primary**: Linux (amd64, arm64)
+- **Primary**: macOS (amd64/Intel, arm64/Apple Silicon)
+- **Primary**: Windows (amd64)
+
+### Language Version Requirements
+**Bash:**
 - **Minimum**: Bash 4.0 (for associative arrays, `[[` conditionals)
 - **Tested**: Ubuntu default bash (5.x)
 - **Not Compatible**: POSIX sh, dash, zsh (bash-specific features used)
 
+**Go:**
+- **Minimum**: Go 1.21 (for standard library features)
+- **Recommended**: Go 1.22+ (latest stable)
+- **Build**: Cross-compilation for all supported platforms
+
 ### Git Requirements
 - **Minimum**: Git 2.0 (for worktree support)
 - **Recommended**: Git 2.5+ (improved worktree commands)
+- **Required for both implementations**: Git must be available in PATH
 
 ### Security Requirements
 - **No Secrets**: Never commit credentials, tokens, or sensitive data
@@ -173,10 +226,56 @@
 - All PRs MUST verify adherence to constitutional principles
 - CI/CD MUST enforce test coverage and quality gates
 - Breaking changes MUST be explicitly justified against Principle VI
-- Complexity MUST be justified against Principle I (single-file portability)
+- Multi-implementation compatibility MUST be maintained per Principle I
 
 ---
 
-**Version**: 1.0.0
+## Amendment History
+
+### Amendment 1 (Version 2.0.0) - 2025-10-03
+**Rationale**: Enable Go CLI implementation to provide superior performance, error handling, and user experience while maintaining Bash version for compatibility.
+
+**Impact Analysis**:
+- **Existing Code**: Bash implementation (`git-worktree-manager.sh`) continues to work unchanged
+- **New Code**: Go implementation provides same CLI interface with improved internals
+- **Users**: Can choose implementation; both share configuration and workflow
+- **Migration**: Optional - users can continue using Bash version indefinitely
+
+**Changes**:
+1. **Principle I**: Changed from "Single-File Portability" to "Multi-Implementation Strategy"
+   - Added support for Go implementation as primary development focus
+   - Maintained Bash implementation for legacy support
+   - Required CLI interface compatibility between implementations
+
+2. **Principle II**: Changed from "Bash Best Practices" to "Language-Specific Best Practices"
+   - Separated Bash and Go coding standards
+   - Added Go-specific requirements (Cobra, standard layout, etc.)
+
+3. **Principle III**: Updated "Test-First Development" for both languages
+   - Added Go testing requirements (>80% coverage, table-driven tests)
+   - Separated test directory structure for each implementation
+
+4. **Principle V**: Updated "Semantic Release" for multi-platform binaries
+   - Added Go binary assets for Linux/macOS/Windows (amd64/arm64)
+   - Added checksum file requirement
+   - Version embedding via ldflags for Go
+
+5. **Technical Constraints**: Added Go language requirements
+   - Go 1.21+ minimum version
+   - Cross-compilation support
+   - Expanded platform support (native Windows)
+
+**Justification**: The single-file Bash constraint was appropriate for initial development but limits:
+- Performance (compiled Go vs interpreted Bash)
+- Error handling (Go's error system vs Bash error handling)
+- Cross-platform support (Windows native support)
+- Maintainability (Go's type system and testing infrastructure)
+- User experience (better progress indicators, interactive prompts)
+
+The multi-implementation approach preserves existing investment while enabling modernization.
+
+---
+
+**Version**: 2.0.0
 **Ratified**: 2025-10-03
-**Last Amended**: 2025-10-03
+**Last Amended**: 2025-10-03 (Amendment 1 - Go CLI Implementation)

@@ -11,9 +11,10 @@ on:
   workflow_dispatch:  # Allow manual triggering
 
 jobs:
-  test:
+  test-bash:
+    name: Test Bash Script
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -34,6 +35,46 @@ jobs:
 
       - name: Run comprehensive test suite
         run: ./tests/run_all_tests.sh
+
+  test-go:
+    name: Test Go CLI
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.21'
+
+      - name: Download dependencies
+        run: go mod download
+
+      - name: Run Go tests
+        run: go test -v -race -coverprofile=coverage.txt -covermode=atomic ./...
+
+      - name: Build Go binary
+        run: go build -o gwtm ./cmd/git-worktree-manager
+
+      - name: Test CLI help output
+        run: ./gwtm --help
+
+      - name: Test CLI version output
+        run: ./gwtm version
+
+      - name: Test dry-run mode
+        run: ./gwtm --dry-run setup test-org/test-repo
+
+      - name: Upload coverage reports
+        uses: codecov/codecov-action@v3
+        with:
+          files: ./coverage.txt
+          flags: unittests
+          name: codecov-umbrella
 
 #      - name: Test dry-run functionality
 #        run: |
