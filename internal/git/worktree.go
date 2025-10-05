@@ -10,13 +10,11 @@ func (c *Client) WorktreeAdd(path, branch string, track bool) error {
 	args := []string{"worktree", "add"}
 
 	if track {
-		args = append(args, "-b", branch)
-	}
-
-	args = append(args, path)
-
-	if track {
-		args = append(args, branch)
+		// Create new branch: git worktree add -b <branch> <path>
+		args = append(args, "-b", branch, path)
+	} else {
+		// Checkout existing branch: git worktree add <path> <branch>
+		args = append(args, path, branch)
 	}
 
 	_, stderr, err := c.ExecGit(args...)

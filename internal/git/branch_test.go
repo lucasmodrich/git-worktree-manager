@@ -3,10 +3,11 @@ package git
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
-func setupBranchTestRepo(t *testing.T) (*Client, string) {
+func setupBranchTestRepo(t *testing.T) (*Client, string, string) {
 	tmpDir := t.TempDir()
 
 	client := NewClient(tmpDir)
@@ -20,11 +21,20 @@ func setupBranchTestRepo(t *testing.T) (*Client, string) {
 	client.ExecGit("add", "README.md")
 	client.ExecGit("commit", "-m", "Initial commit")
 
-	return client, tmpDir
+	// Detect which default branch was created (main or master)
+	output, _, _ := client.ExecGit("branch", "--show-current")
+	defaultBranch := strings.TrimSpace(output)
+	if defaultBranch == "" {
+		// Fallback for older git versions
+		output, _, _ = client.ExecGit("rev-parse", "--abbrev-ref", "HEAD")
+		defaultBranch = strings.TrimSpace(output)
+	}
+
+	return client, tmpDir, defaultBranch
 }
 
 func TestBranchExists(t *testing.T) {
-	client, _ := setupBranchTestRepo(t)
+	client, _, defaultBranch := setupBranchTestRepo(t)
 
 	tests := []struct {
 		name     string
@@ -34,15 +44,8 @@ func TestBranchExists(t *testing.T) {
 		want     bool
 	}{
 		{
-			name:   "main branch exists locally",
-			branch: "main",
-			remote: false,
-			setup:  func() {},
-			want:   true,
-		},
-		{
-			name:   "master branch exists locally",
-			branch: "master",
+			name:   "default branch exists locally",
+			branch: defaultBranch,
 			remote: false,
 			setup:  func() {},
 			want:   true,
@@ -78,7 +81,7 @@ func TestBranchExists(t *testing.T) {
 }
 
 func TestCreateBranch(t *testing.T) {
-	client, _ := setupBranchTestRepo(t)
+	client, _, defaultBranch := setupBranchTestRepo(t)
 
 	tests := []struct {
 		name       string
@@ -87,15 +90,9 @@ func TestCreateBranch(t *testing.T) {
 		wantErr    bool
 	}{
 		{
-			name:       "create branch from main",
+			name:       "create branch from default",
 			branchName: "feature/new",
-			baseBranch: "main",
-			wantErr:    false,
-		},
-		{
-			name:       "create branch from master",
-			branchName: "feature/another",
-			baseBranch: "master",
+			baseBranch: defaultBranch,
 			wantErr:    false,
 		},
 		{
@@ -124,10 +121,10 @@ func TestCreateBranch(t *testing.T) {
 }
 
 func TestDeleteBranch(t *testing.T) {
-	client, _ := setupBranchTestRepo(t)
+	client, _, defaultBranch := setupBranchTestRepo(t)
 
 	// Create a branch first
-	client.CreateBranch("feature/to-delete", "main")
+	client.CreateBranch("feature/to-delete", defaultBranch)
 
 	tests := []struct {
 		name    string
@@ -161,7 +158,7 @@ func TestDeleteBranch(t *testing.T) {
 }
 
 func TestDeleteRemoteBranch(t *testing.T) {
-	client, _ := setupBranchTestRepo(t)
+	client, _, _ := setupBranchTestRepo(t)
 
 	tests := []struct {
 		name    string

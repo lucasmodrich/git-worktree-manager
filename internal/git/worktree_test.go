@@ -7,36 +7,51 @@ import (
 	"testing"
 )
 
-func setupTestRepo(t *testing.T) (*Client, string) {
+func setupTestRepo(t *testing.T) (*Client, string, string) {
 	tmpDir := t.TempDir()
 
-	// Create a bare repo
-	bareDir := filepath.Join(tmpDir, ".bare")
-	os.MkdirAll(bareDir, 0755)
+	// Step 1: Create a temporary normal repo to get initial content
+	setupDir := filepath.Join(tmpDir, "setup")
+	os.MkdirAll(setupDir, 0755)
 
-	client := NewClient(bareDir)
-	client.ExecGit("init", "--bare")
-
-	// Set up a main worktree with an initial commit
-	mainDir := filepath.Join(tmpDir, "main")
-	os.MkdirAll(mainDir, 0755)
-
-	mainClient := NewClient(mainDir)
-	mainClient.ExecGit("init")
-	mainClient.ExecGit("config", "user.name", "Test User")
-	mainClient.ExecGit("config", "user.email", "test@example.com")
+	setupClient := NewClient(setupDir)
+	setupClient.ExecGit("init")
+	setupClient.ExecGit("config", "user.name", "Test User")
+	setupClient.ExecGit("config", "user.email", "test@example.com")
 
 	// Create initial commit
-	testFile := filepath.Join(mainDir, "README.md")
+	testFile := filepath.Join(setupDir, "README.md")
 	os.WriteFile(testFile, []byte("# Test Repo\n"), 0644)
-	mainClient.ExecGit("add", "README.md")
-	mainClient.ExecGit("commit", "-m", "Initial commit")
+	setupClient.ExecGit("add", "README.md")
+	setupClient.ExecGit("commit", "-m", "Initial commit")
 
-	return NewClient(tmpDir), tmpDir
+	// Detect default branch
+	output, _, _ := setupClient.ExecGit("branch", "--show-current")
+	defaultBranch := strings.TrimSpace(output)
+	if defaultBranch == "" {
+		output, _, _ = setupClient.ExecGit("rev-parse", "--abbrev-ref", "HEAD")
+		defaultBranch = strings.TrimSpace(output)
+	}
+
+	// Step 2: Create bare repo from the setup repo
+	bareDir := filepath.Join(tmpDir, ".bare")
+	setupClient.ExecGit("clone", "--bare", setupDir, bareDir)
+
+	// Step 3: Create first worktree from bare repo
+	mainDir := filepath.Join(tmpDir, defaultBranch)
+	bareClient := NewClient(bareDir)
+	bareClient.ExecGit("worktree", "add", mainDir, defaultBranch)
+
+	// Return client pointing to the project root (tmpDir) which contains .bare/
+	return NewClient(tmpDir), tmpDir, defaultBranch
 }
 
 func TestWorktreeAdd(t *testing.T) {
-	client, tmpDir := setupTestRepo(t)
+	_, tmpDir, defaultBranch := setupTestRepo(t)
+
+	// Use bare repo client for worktree commands
+	bareDir := filepath.Join(tmpDir, ".bare")
+	bareClient := NewClient(bareDir)
 
 	tests := []struct {
 		name     string
@@ -49,14 +64,17 @@ func TestWorktreeAdd(t *testing.T) {
 			name:     "add new worktree",
 			path:     filepath.Join(tmpDir, "feature"),
 			branch:   "feature/test",
-			track:    true,
+			track:    false, // Match production usage: branch pre-created, track=false
 			wantErr:  false,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := client.WorktreeAdd(tt.path, tt.branch, tt.track)
+			// Pre-create the branch (matches production workflow in branch.go)
+			bareClient.ExecGit("branch", tt.branch, defaultBranch)
+
+			err := bareClient.WorktreeAdd(tt.path, tt.branch, tt.track)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("WorktreeAdd() error = %v, wantErr %v", err, tt.wantErr)
 			}
@@ -65,13 +83,18 @@ func TestWorktreeAdd(t *testing.T) {
 }
 
 func TestWorktreeList(t *testing.T) {
-	client, tmpDir := setupTestRepo(t)
+	_, tmpDir, defaultBranch := setupTestRepo(t)
 
-	// Add a worktree first
+	// Use bare repo client
+	bareDir := filepath.Join(tmpDir, ".bare")
+	bareClient := NewClient(bareDir)
+
+	// Add a worktree first (match production workflow: create branch, then worktree)
 	featurePath := filepath.Join(tmpDir, "feature")
-	client.WorktreeAdd(featurePath, "feature/test", true)
+	bareClient.ExecGit("branch", "feature/test", defaultBranch)
+	bareClient.WorktreeAdd(featurePath, "feature/test", false)
 
-	worktrees, err := client.WorktreeList()
+	worktrees, err := bareClient.WorktreeList()
 	if err != nil {
 		t.Fatalf("WorktreeList() error = %v", err)
 	}
@@ -94,20 +117,25 @@ func TestWorktreeList(t *testing.T) {
 }
 
 func TestWorktreeRemove(t *testing.T) {
-	client, tmpDir := setupTestRepo(t)
+	_, tmpDir, defaultBranch := setupTestRepo(t)
 
-	// Add a worktree first
+	// Use bare repo client
+	bareDir := filepath.Join(tmpDir, ".bare")
+	bareClient := NewClient(bareDir)
+
+	// Add a worktree first (match production workflow: create branch, then worktree)
 	featurePath := filepath.Join(tmpDir, "feature")
-	client.WorktreeAdd(featurePath, "feature/test", true)
+	bareClient.ExecGit("branch", "feature/test", defaultBranch)
+	bareClient.WorktreeAdd(featurePath, "feature/test", false)
 
 	// Now remove it
-	err := client.WorktreeRemove(featurePath)
+	err := bareClient.WorktreeRemove(featurePath)
 	if err != nil {
 		t.Errorf("WorktreeRemove() error = %v", err)
 	}
 
 	// Verify it's removed
-	worktrees, _ := client.WorktreeList()
+	worktrees, _ := bareClient.WorktreeList()
 	for _, wt := range worktrees {
 		if strings.Contains(wt, "feature") {
 			t.Error("WorktreeRemove() did not remove the worktree")
@@ -116,10 +144,14 @@ func TestWorktreeRemove(t *testing.T) {
 }
 
 func TestWorktreePrune(t *testing.T) {
-	client, _ := setupTestRepo(t)
+	_, tmpDir, _ := setupTestRepo(t)
+
+	// Use bare repo client
+	bareDir := filepath.Join(tmpDir, ".bare")
+	bareClient := NewClient(bareDir)
 
 	// Prune should not error even if nothing to prune
-	err := client.WorktreePrune()
+	err := bareClient.WorktreePrune()
 	if err != nil {
 		t.Errorf("WorktreePrune() error = %v", err)
 	}
