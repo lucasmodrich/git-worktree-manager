@@ -30,10 +30,19 @@ func setupRemoteTestRepo(t *testing.T) (*Client, string, string) {
 	localClient.ExecGit("add", "README.md")
 	localClient.ExecGit("commit", "-m", "Initial commit")
 
+	// Detect which default branch was created (main or master)
+	output, _, _ := localClient.ExecGit("branch", "--show-current")
+	defaultBranch := strings.TrimSpace(output)
+	if defaultBranch == "" {
+		// Fallback for older git versions
+		output, _, _ = localClient.ExecGit("rev-parse", "--abbrev-ref", "HEAD")
+		defaultBranch = strings.TrimSpace(output)
+	}
+
 	// Add remote
 	localClient.ExecGit("remote", "add", "origin", remoteDir)
 
-	return localClient, localDir, remoteDir
+	return localClient, localDir, defaultBranch
 }
 
 func TestClone(t *testing.T) {
@@ -102,10 +111,10 @@ func TestClone(t *testing.T) {
 }
 
 func TestFetch(t *testing.T) {
-	client, _, _ := setupRemoteTestRepo(t)
+	client, _, defaultBranch := setupRemoteTestRepo(t)
 
 	// Push to remote first
-	client.ExecGit("push", "-u", "origin", "main")
+	client.ExecGit("push", "-u", "origin", defaultBranch)
 
 	tests := []struct {
 		name    string
@@ -138,7 +147,7 @@ func TestFetch(t *testing.T) {
 }
 
 func TestPush(t *testing.T) {
-	client, _, _ := setupRemoteTestRepo(t)
+	client, _, defaultBranch := setupRemoteTestRepo(t)
 
 	tests := []struct {
 		name        string
@@ -147,8 +156,8 @@ func TestPush(t *testing.T) {
 		wantErr     bool
 	}{
 		{
-			name:        "push main with upstream",
-			branch:      "main",
+			name:        "push default branch with upstream",
+			branch:      defaultBranch,
 			setUpstream: true,
 			wantErr:     false,
 		},
@@ -165,10 +174,10 @@ func TestPush(t *testing.T) {
 }
 
 func TestDetectDefaultBranch(t *testing.T) {
-	client, localDir, _ := setupRemoteTestRepo(t)
+	client, localDir, defaultBranch := setupRemoteTestRepo(t)
 
 	// Push to create remote tracking
-	client.Push("main", true)
+	client.Push(defaultBranch, true)
 
 	// Detect default branch
 	branch, err := client.DetectDefaultBranch()
