@@ -6,12 +6,19 @@ import (
 	"github.com/lucasmodrich/git-worktree-manager/internal/commands"
 )
 
-// version will be set via ldflags during build: -X main.version=x.y.z
-var version = "dev"
+// Build info injected via ldflags:
+//
+//	-X main.version=x.y.z
+//	-X main.commit=abc1234
+//	-X main.date=2006-01-02T15:04:05Z
+var (
+	version = "dev"
+	commit  = "none"
+	date    = "unknown"
+)
 
 func main() {
-	// Set version in root command
-	commands.SetVersion(version)
+	commands.SetBuildInfo(version, commit, date)
 
 	// Execute root command
 	if err := commands.Execute(); err != nil {

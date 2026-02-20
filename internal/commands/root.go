@@ -1,13 +1,19 @@
 package commands
 
 import (
+	"fmt"
+
 	"github.com/spf13/cobra"
 )
 
 var (
 	// Global flags
-	dryRun     bool
+	dryRun bool
+
+	// Build info — set via SetBuildInfo from main
 	appVersion string
+	appCommit  string
+	appDate    string
 )
 
 var rootCmd = &cobra.Command{
@@ -33,16 +39,32 @@ func Execute() error {
 	return rootCmd.Execute()
 }
 
-// SetVersion sets the version string (called from main).
+// SetBuildInfo sets the version, commit hash, and build date (called from main).
 // Also populates rootCmd.Version so Cobra's built-in --version flag works.
-func SetVersion(v string) {
-	appVersion = v
-	rootCmd.Version = v
+func SetBuildInfo(version, commit, date string) {
+	appVersion = version
+	appCommit = commit
+	appDate = date
+	if commit != "" && commit != "none" {
+		rootCmd.Version = fmt.Sprintf("%s (%s, %s)", version, commit, date)
+	} else {
+		rootCmd.Version = version
+	}
 }
 
-// GetVersion returns the app version
+// GetVersion returns the semver version string
 func GetVersion() string {
 	return appVersion
+}
+
+// GetCommit returns the git commit hash
+func GetCommit() string {
+	return appCommit
+}
+
+// GetDate returns the build date
+func GetDate() string {
+	return appDate
 }
 
 // GetDryRun returns the dry-run flag value
