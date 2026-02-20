@@ -3,38 +3,24 @@ package config
 import (
 	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 )
 
 func TestGetBinaryPath(t *testing.T) {
-	tests := []struct {
-		name    string
-		setup   func() string
-		cleanup func()
-	}{
-		{
-			name: "binary path in install directory",
-			setup: func() string {
-				// Set a custom install directory
-				os.Setenv("GIT_WORKTREE_MANAGER_HOME", "/tmp/test-install")
-				return "/tmp/test-install/git-worktree-manager"
-			},
-			cleanup: func() {
-				os.Unsetenv("GIT_WORKTREE_MANAGER_HOME")
-			},
-		},
+	installDir := t.TempDir()
+	os.Setenv("GIT_WORKTREE_MANAGER_HOME", installDir)
+	defer os.Unsetenv("GIT_WORKTREE_MANAGER_HOME")
+
+	binaryName := "gwtm"
+	if runtime.GOOS == "windows" {
+		binaryName = "gwtm.exe"
 	}
+	expected := filepath.Join(installDir, binaryName)
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			expected := tt.setup()
-			defer tt.cleanup()
-
-			got := GetBinaryPath()
-			if got != expected {
-				t.Errorf("GetBinaryPath() = %v, want %v", got, expected)
-			}
-		})
+	got := GetBinaryPath()
+	if got != expected {
+		t.Errorf("GetBinaryPath() = %v, want %v", got, expected)
 	}
 }
 
@@ -51,8 +37,8 @@ func TestPathJoinCrossPlatform(t *testing.T) {
 		},
 		{
 			name:     "path with binary name",
-			parts:    []string{"/usr", "local", "bin", "git-worktree-manager"},
-			expected: filepath.Join("/usr", "local", "bin", "git-worktree-manager"),
+			parts:    []string{"/usr", "local", "bin", "gwtm"},
+			expected: filepath.Join("/usr", "local", "bin", "gwtm"),
 		},
 	}
 

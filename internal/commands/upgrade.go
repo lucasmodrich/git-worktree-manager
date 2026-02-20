@@ -53,10 +53,5 @@ func runUpgrade(cmd *cobra.Command, args []string) {
 		return
 	}
 
-	ui.PrintStatus("✓", "Binary downloaded")
-	ui.PrintStatus("✓", "Checksum verified")
-	ui.PrintStatus("✓", "README.md downloaded")
-	ui.PrintStatus("✓", "VERSION downloaded")
-	ui.PrintStatus("✓", "LICENSE downloaded")
 	ui.PrintStatus("✅", fmt.Sprintf("Upgrade complete. Now running version %s.", latestVersion))
 }

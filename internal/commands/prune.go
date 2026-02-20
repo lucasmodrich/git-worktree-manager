@@ -18,14 +18,13 @@ func init() {
 }
 
 func runPrune(cmd *cobra.Command, args []string) {
-	// Verify we're in a worktree-managed repo
-	if err := verifyWorktreeRepo(); err != nil {
-		ui.PrintError(err, "Run this command from a directory where .git points to .bare")
+	root, err := findWorktreeRoot()
+	if err != nil {
+		ui.PrintError(err, "Run this command from within a worktree-managed repository")
 		return
 	}
 
-	// Create git client
-	client := git.NewClient(".")
+	client := git.NewClient(root)
 	client.DryRun = GetDryRun()
 
 	if client.DryRun {
@@ -33,9 +32,7 @@ func runPrune(cmd *cobra.Command, args []string) {
 		return
 	}
 
-	// Prune worktrees
 	ui.PrintStatus("🧹", "Pruning stale worktrees...")
-
 	if err := client.WorktreePrune(); err != nil {
 		ui.PrintError(err, "Failed to prune worktrees")
 		return

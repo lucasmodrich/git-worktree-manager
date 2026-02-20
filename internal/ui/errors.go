@@ -2,6 +2,7 @@ package ui
 
 import (
 	"fmt"
+	"os"
 )
 
 // FormatError formats an error message with actionable guidance
@@ -12,5 +13,5 @@ func FormatError(err error, guidance string) string {
 
 // PrintError prints a formatted error message to stderr
 func PrintError(err error, guidance string) {
-	fmt.Println(FormatError(err, guidance))
+	fmt.Fprintln(os.Stderr, FormatError(err, guidance))
 }

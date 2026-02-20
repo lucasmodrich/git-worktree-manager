@@ -26,27 +26,31 @@ func init() {
 func runSetup(cmd *cobra.Command, args []string) {
 	repoSpec := args[0]
 
-	// Parse repository specification
 	url, repoName, err := parseRepoSpec(repoSpec)
 	if err != nil {
-		ui.PrintError(err, "Examples: acme/webapp, user123/my-project")
+		ui.PrintError(err, "Examples: acme/webapp, user123/my-project, my.org/tool.name")
 		return
 	}
 
-	// Check if .bare already exists
-	bareDir := ".bare"
-	if _, err := os.Stat(bareDir); !os.IsNotExist(err) {
-		ui.PrintError(fmt.Errorf(".bare directory already exists in current directory"),
-			"Remove existing .bare directory or run setup in a different directory")
+	// Compute the absolute path for the new project directory
+	cwd, err := os.Getwd()
+	if err != nil {
+		ui.PrintError(err, "Failed to determine current directory")
+		return
+	}
+	repoDir := filepath.Join(cwd, repoName)
+
+	// Fail early if the directory already exists
+	if _, err := os.Stat(repoDir); !os.IsNotExist(err) {
+		ui.PrintError(
+			fmt.Errorf("directory %q already exists", repoName),
+			"Run setup in a different directory or choose a different name",
+		)
 		return
 	}
 
-	// Create git client
-	client := git.NewClient(".")
-	client.DryRun = GetDryRun()
-
-	if client.DryRun {
-		ui.PrintDryRun("Would create project root: " + repoName)
+	if GetDryRun() {
+		ui.PrintDryRun("Would create project root: " + repoDir)
 		ui.PrintDryRun("Would clone bare repository into .bare")
 		ui.PrintDryRun("Would create .git file pointing to .bare")
 		ui.PrintDryRun("Would configure Git for auto remote tracking")
@@ -57,32 +61,37 @@ func runSetup(cmd *cobra.Command, args []string) {
 
 	// Create project root directory
 	ui.PrintStatus("📂", "Creating project root: "+repoName)
-	if err := os.MkdirAll(repoName, 0755); err != nil {
+	if err := os.MkdirAll(repoDir, 0755); err != nil {
 		ui.PrintError(err, "Failed to create project directory")
 		return
 	}
 
-	// Change to project directory
-	if err := os.Chdir(repoName); err != nil {
-		ui.PrintError(err, "Failed to change to project directory")
-		return
-	}
+	// Remove the partially-created directory if any subsequent step fails
+	cleanup := true
+	defer func() {
+		if cleanup {
+			os.RemoveAll(repoDir)
+		}
+	}()
 
-	// Clone bare repository
+	// All git operations use repoDir as the working directory
+	client := git.NewClient(repoDir)
+
+	bareDir := filepath.Join(repoDir, ".bare")
+
 	ui.PrintStatus("📦", "Cloning bare repository into .bare")
 	if err := client.Clone(url, bareDir, true); err != nil {
 		ui.PrintError(err, "Check network connection and verify repository URL is accessible")
 		return
 	}
 
-	// Create .git file pointing to .bare
 	ui.PrintStatus("📝", "Creating .git file pointing to .bare")
-	if err := os.WriteFile(".git", []byte("gitdir: ./"+bareDir), 0644); err != nil {
+	gitFile := filepath.Join(repoDir, ".git")
+	if err := os.WriteFile(gitFile, []byte("gitdir: ./.bare"), 0644); err != nil {
 		ui.PrintError(err, "Failed to create .git file")
 		return
 	}
 
-	// Configure git settings
 	ui.PrintStatus("⚙️", "Configuring Git for auto remote tracking")
 	if err := client.ConfigureWorktreeSettings(); err != nil {
 		ui.PrintError(err, "Failed to configure git settings")
@@ -95,35 +104,34 @@ func runSetup(cmd *cobra.Command, args []string) {
 		return
 	}
 
-	// Fetch all remote branches
 	ui.PrintStatus("📡", "Fetching all remote branches")
 	if err := client.Fetch(true, false); err != nil {
 		ui.PrintError(err, "Failed to fetch remote branches")
 		return
 	}
 
-	// Detect default branch
 	defaultBranch, err := client.DetectDefaultBranch()
 	if err != nil {
 		ui.PrintError(err, "Could not detect default branch")
 		return
 	}
 
-	// Create initial worktree for default branch
 	ui.PrintStatus("🌱", "Creating initial worktree for branch: "+defaultBranch)
-	worktreePath := filepath.Join(".", defaultBranch)
+	worktreePath := filepath.Join(repoDir, defaultBranch)
 	if err := client.WorktreeAdd(worktreePath, defaultBranch, false); err != nil {
 		ui.PrintError(err, "Failed to create worktree for default branch")
 		return
 	}
 
-	ui.PrintStatus("✅", "Setup complete!")
+	cleanup = false // all steps succeeded — keep the directory
+	ui.PrintStatus("✅", fmt.Sprintf("Setup complete! cd %s/%s to start working.", repoName, defaultBranch))
 }
 
-// parseRepoSpec parses org/repo or git@github.com:org/repo.git format
+// parseRepoSpec parses org/repo or git@github.com:org/repo.git format.
+// Org and repo names may contain letters, digits, hyphens, underscores, and dots.
 func parseRepoSpec(spec string) (url, repoName string, err error) {
 	// Match org/repo format
-	orgRepoRegex := regexp.MustCompile(`^([a-zA-Z0-9_-]+)/([a-zA-Z0-9_-]+)$`)
+	orgRepoRegex := regexp.MustCompile(`^([a-zA-Z0-9_.-]+)/([a-zA-Z0-9_.-]+)$`)
 	if matches := orgRepoRegex.FindStringSubmatch(spec); matches != nil {
 		org := matches[1]
 		repo := matches[2]
@@ -133,7 +141,7 @@ func parseRepoSpec(spec string) (url, repoName string, err error) {
 	}
 
 	// Match git@github.com:org/repo.git format
-	sshRegex := regexp.MustCompile(`^git@github\.com:([a-zA-Z0-9_-]+)/([a-zA-Z0-9_-]+)\.git$`)
+	sshRegex := regexp.MustCompile(`^git@github\.com:([a-zA-Z0-9_.-]+)/([a-zA-Z0-9_.-]+)\.git$`)
 	if matches := sshRegex.FindStringSubmatch(spec); matches != nil {
 		repo := matches[2]
 		url = spec
