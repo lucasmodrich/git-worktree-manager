@@ -17,14 +17,9 @@ func (c *Client) WorktreeAdd(path, branch string, track bool) error {
 		args = append(args, path, branch)
 	}
 
-	_, stderr, err := c.ExecGit(args...)
+	_, _, err := c.ExecGit(args...)
 	if err != nil {
 		return fmt.Errorf("failed to add worktree: %w", err)
-	}
-
-	if stderr != "" && !strings.Contains(stderr, "Preparing worktree") {
-		// Git sometimes outputs to stderr even on success
-		return fmt.Errorf("worktree add warnings: %s", stderr)
 	}
 
 	return nil

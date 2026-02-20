@@ -26,14 +26,13 @@ func init() {
 func runRemove(cmd *cobra.Command, args []string) {
 	branchName := args[0]
 
-	// Verify we're in a worktree-managed repo
-	if err := verifyWorktreeRepo(); err != nil {
-		ui.PrintError(err, "Run this command from a directory where .git points to .bare")
+	root, err := findWorktreeRoot()
+	if err != nil {
+		ui.PrintError(err, "Run this command from within a worktree-managed repository")
 		return
 	}
 
-	// Create git client
-	client := git.NewClient(".")
+	client := git.NewClient(root)
 	client.DryRun = GetDryRun()
 
 	if client.DryRun {
@@ -45,29 +44,20 @@ func runRemove(cmd *cobra.Command, args []string) {
 		return
 	}
 
-	// Remove worktree
 	ui.PrintStatus("🗑", "Removing worktree '"+branchName+"'")
-
-	// Construct worktree path (handle feature/ prefixes etc)
-	worktreePath := branchName
-
-	if err := client.WorktreeRemove(worktreePath); err != nil {
-		ui.PrintError(err, "Use --list to see available worktrees and branches")
+	if err := client.WorktreeRemove(branchName); err != nil {
+		ui.PrintError(err, "Use 'gwtm list' to see available worktrees")
 		return
 	}
 
-	// Delete local branch
 	ui.PrintStatus("🧨", "Deleting local branch '"+branchName+"'")
-
 	if err := client.DeleteBranch(branchName, false); err != nil {
 		ui.PrintError(err, "Branch may have already been deleted")
-		// Continue anyway - not fatal
+		// Continue anyway — worktree was already removed
 	}
 
-	// Delete remote branch if requested
 	if removeRemote {
 		ui.PrintStatus("☁️", "Deleting remote branch 'origin/"+branchName+"'")
-
 		if err := client.DeleteRemoteBranch(branchName); err != nil {
 			ui.PrintError(err, "Remote branch may not exist or network issue")
 			return

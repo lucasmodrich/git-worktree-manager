@@ -9,13 +9,13 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
+	"time"
 
 	"github.com/lucasmodrich/git-worktree-manager/internal/config"
 )
 
-// UpgradeToLatest downloads and installs the latest version
+// UpgradeToLatest downloads and installs the latest version, printing progress as it goes.
 func UpgradeToLatest(currentVersion, latestVersion string) error {
-	// Parse and compare versions
 	current, err := ParseVersion(currentVersion)
 	if err != nil {
 		return fmt.Errorf("invalid current version: %w", err)
@@ -30,89 +30,118 @@ func UpgradeToLatest(currentVersion, latestVersion string) error {
 		return fmt.Errorf("already on latest version %s", currentVersion)
 	}
 
-	// Determine binary name for current platform
 	binaryName := getBinaryName()
 
 	// Download binary
 	binaryURL := fmt.Sprintf("https://github.com/lucasmodrich/git-worktree-manager/releases/download/v%s/%s", latestVersion, binaryName)
-
-	tempBinary := filepath.Join(os.TempDir(), "git-worktree-manager-new")
+	tempBinary := filepath.Join(os.TempDir(), "gwtm-new")
 	if err := downloadFile(binaryURL, tempBinary); err != nil {
 		return fmt.Errorf("failed to download binary: %w", err)
 	}
 	defer os.Remove(tempBinary)
+	fmt.Println("✓ Binary downloaded")
 
-	// Download checksum file
+	// Download and verify checksum
 	checksumURL := fmt.Sprintf("https://github.com/lucasmodrich/git-worktree-manager/releases/download/v%s/checksums.txt", latestVersion)
-	checksumFile := filepath.Join(os.TempDir(), "checksums.txt")
+	checksumFile := filepath.Join(os.TempDir(), "gwtm-checksums.txt")
 	if err := downloadFile(checksumURL, checksumFile); err != nil {
 		return fmt.Errorf("failed to download checksums: %w", err)
 	}
 	defer os.Remove(checksumFile)
 
-	// Verify checksum
 	if err := verifyChecksum(tempBinary, checksumFile, binaryName); err != nil {
 		return fmt.Errorf("checksum verification failed: %w", err)
 	}
+	fmt.Println("✓ Checksum verified")
 
-	// Download additional files
+	// Ensure install directory exists
 	installDir := config.GetInstallDir()
 	if err := os.MkdirAll(installDir, 0755); err != nil {
 		return fmt.Errorf("failed to create install directory: %w", err)
 	}
 
-	files := []string{"README.md", "VERSION", "LICENSE"}
-	for _, file := range files {
-		url := fmt.Sprintf("https://raw.githubusercontent.com/lucasmodrich/git-worktree-manager/refs/heads/main/%s", file)
+	// Download auxiliary files from the release tag (not main branch)
+	for _, file := range []string{"README.md", "VERSION", "LICENSE"} {
+		url := fmt.Sprintf("https://raw.githubusercontent.com/lucasmodrich/git-worktree-manager/refs/tags/v%s/%s", latestVersion, file)
 		dest := filepath.Join(installDir, file)
 		if err := downloadFile(url, dest); err != nil {
-			// Non-fatal - continue
 			fmt.Printf("Warning: failed to download %s: %v\n", file, err)
+		} else {
+			fmt.Printf("✓ %s downloaded\n", file)
 		}
 	}
 
-	// Get current binary path
-	currentBinary := config.GetBinaryPath()
-
-	// Set executable permissions on new binary
+	// Set executable permissions
 	if err := os.Chmod(tempBinary, 0755); err != nil {
 		return fmt.Errorf("failed to set permissions: %w", err)
 	}
 
-	// Replace binary atomically
-	if err := os.Rename(tempBinary, currentBinary); err != nil {
-		return fmt.Errorf("failed to replace binary: %w", err)
+	// Install binary (handles cross-filesystem moves with copy fallback)
+	if err := moveBinary(tempBinary, config.GetBinaryPath()); err != nil {
+		return fmt.Errorf("failed to install binary: %w", err)
 	}
 
 	return nil
 }
 
-// getBinaryName returns the binary name for the current platform
+// getBinaryName returns the release asset filename for the current platform,
+// matching the naming convention produced by GoReleaser.
 func getBinaryName() string {
 	osName := runtime.GOOS
 	arch := runtime.GOARCH
 
-	// Map Go arch names to release naming
 	archName := arch
 	if arch == "amd64" {
 		archName = "x86_64"
 	}
 
-	// Capitalize OS name
-	osNameCap := strings.Title(osName)
+	// Capitalise first letter to match GoReleaser title-case (e.g. "linux" -> "Linux")
+	osNameCap := strings.ToUpper(osName[:1]) + osName[1:]
 
-	binaryName := fmt.Sprintf("git-worktree-manager_%s_%s", osNameCap, archName)
-
+	binaryName := fmt.Sprintf("gwtm_%s_%s", osNameCap, archName)
 	if osName == "windows" {
 		binaryName += ".exe"
 	}
-
 	return binaryName
 }
 
-// downloadFile downloads a file from a URL to a local path
-func downloadFile(url, filepath string) error {
-	resp, err := http.Get(url)
+// moveBinary moves src to dst. Falls back to copy+delete when rename fails
+// across filesystems (e.g. /tmp on a different device than the install dir).
+func moveBinary(src, dst string) error {
+	if err := os.Rename(src, dst); err == nil {
+		return nil
+	}
+
+	in, err := os.Open(src)
+	if err != nil {
+		return fmt.Errorf("failed to open source binary: %w", err)
+	}
+	defer in.Close()
+
+	out, err := os.Create(dst)
+	if err != nil {
+		return fmt.Errorf("failed to create destination binary: %w", err)
+	}
+
+	if _, err := io.Copy(out, in); err != nil {
+		out.Close()
+		os.Remove(dst)
+		return fmt.Errorf("failed to copy binary: %w", err)
+	}
+
+	if err := out.Close(); err != nil {
+		os.Remove(dst)
+		return fmt.Errorf("failed to finalise binary: %w", err)
+	}
+
+	os.Remove(src) // best-effort cleanup of temp file
+	return nil
+}
+
+// downloadFile downloads url to the local path with a 60-second timeout.
+func downloadFile(url, path string) error {
+	client := &http.Client{Timeout: 60 * time.Second}
+	resp, err := client.Get(url)
 	if err != nil {
 		return err
 	}
@@ -122,7 +151,7 @@ func downloadFile(url, filepath string) error {
 		return fmt.Errorf("HTTP %d: %s", resp.StatusCode, url)
 	}
 
-	out, err := os.Create(filepath)
+	out, err := os.Create(path)
 	if err != nil {
 		return err
 	}
@@ -132,9 +161,8 @@ func downloadFile(url, filepath string) error {
 	return err
 }
 
-// verifyChecksum verifies the SHA256 checksum of a file
+// verifyChecksum verifies the SHA256 checksum of filePath against checksums.txt.
 func verifyChecksum(filePath, checksumFile, binaryName string) error {
-	// Calculate actual checksum
 	file, err := os.Open(filePath)
 	if err != nil {
 		return err
@@ -147,19 +175,16 @@ func verifyChecksum(filePath, checksumFile, binaryName string) error {
 	}
 	actualChecksum := fmt.Sprintf("%x", hash.Sum(nil))
 
-	// Read expected checksum from file
 	checksumData, err := os.ReadFile(checksumFile)
 	if err != nil {
 		return err
 	}
 
-	// Parse checksums.txt (format: "checksum  filename")
-	lines := strings.Split(string(checksumData), "\n")
+	// Format: "<checksum>  <filename>"
 	var expectedChecksum string
-	for _, line := range lines {
+	for _, line := range strings.Split(string(checksumData), "\n") {
 		if strings.Contains(line, binaryName) {
-			parts := strings.Fields(line)
-			if len(parts) >= 1 {
+			if parts := strings.Fields(line); len(parts) >= 1 {
 				expectedChecksum = parts[0]
 				break
 			}

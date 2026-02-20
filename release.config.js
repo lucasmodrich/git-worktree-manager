@@ -12,7 +12,7 @@ module.exports = {
             changelogFile: 'CHANGELOG.md',
         }],
         {
-            verifyRelease: (pluginConfig, context) => {
+            prepare: (pluginConfig, context) => {
                 fs.writeFileSync('VERSION', context.nextRelease.version);
             }
         },

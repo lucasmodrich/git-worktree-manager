@@ -11,7 +11,7 @@ var (
 )
 
 var rootCmd = &cobra.Command{
-	Use:   "git-worktree-manager",
+	Use:   "gwtm",
 	Short: "Git worktree manager - Simplify git worktree workflows",
 	Long: `🛠 Git Worktree Manager — A tool to simplify git worktree management
 
@@ -33,9 +33,11 @@ func Execute() error {
 	return rootCmd.Execute()
 }
 
-// SetVersion sets the version string (called from main)
+// SetVersion sets the version string (called from main).
+// Also populates rootCmd.Version so Cobra's built-in --version flag works.
 func SetVersion(v string) {
 	appVersion = v
+	rootCmd.Version = v
 }
 
 // GetVersion returns the app version

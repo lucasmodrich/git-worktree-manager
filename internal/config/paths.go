@@ -2,10 +2,15 @@ package config
 
 import (
 	"path/filepath"
+	"runtime"
 )
 
-// GetBinaryPath returns the full path to the git-worktree-manager binary
+// GetBinaryPath returns the full path to the gwtm binary in the install directory
 func GetBinaryPath() string {
 	installDir := GetInstallDir()
-	return filepath.Join(installDir, "git-worktree-manager")
+	name := "gwtm"
+	if runtime.GOOS == "windows" {
+		name = "gwtm.exe"
+	}
+	return filepath.Join(installDir, name)
 }

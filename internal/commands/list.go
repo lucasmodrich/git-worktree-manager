@@ -20,14 +20,13 @@ func init() {
 }
 
 func runList(cmd *cobra.Command, args []string) {
-	// Verify we're in a worktree-managed repo
-	if err := verifyWorktreeRepo(); err != nil {
-		ui.PrintError(err, "Run this command from a directory where .git points to .bare")
+	root, err := findWorktreeRoot()
+	if err != nil {
+		ui.PrintError(err, "Run this command from within a worktree-managed repository")
 		return
 	}
 
-	// Create git client
-	client := git.NewClient(".")
+	client := git.NewClient(root)
 	client.DryRun = GetDryRun()
 
 	if client.DryRun {
@@ -35,14 +34,12 @@ func runList(cmd *cobra.Command, args []string) {
 		return
 	}
 
-	// Get worktree list
 	worktrees, err := client.WorktreeList()
 	if err != nil {
 		ui.PrintError(err, "Failed to list worktrees")
 		return
 	}
 
-	// Display worktrees
 	ui.PrintStatus("📋", "Active Git worktrees:")
 	for _, wt := range worktrees {
 		fmt.Println(wt)

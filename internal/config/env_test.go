@@ -2,6 +2,7 @@ package config
 
 import (
 	"os"
+	"path/filepath"
 	"testing"
 )
 
@@ -45,9 +46,12 @@ func TestGetInstallDir(t *testing.T) {
 			if tt.wantDir == "" {
 				home := os.Getenv("HOME")
 				if home == "" {
+					home = os.Getenv("USERPROFILE")
+				}
+				if home == "" {
 					t.Skip("HOME not set, skipping default path test")
 				}
-				expected := home + "/.git-worktree-manager"
+				expected := filepath.Join(home, ".git-worktree-manager")
 				if got != expected {
 					t.Errorf("GetInstallDir() = %v, want %v", got, expected)
 				}

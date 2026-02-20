@@ -3,25 +3,31 @@ package commands
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 )
 
-// verifyWorktreeRepo checks if we're in a worktree-managed repository
-// A worktree-managed repo has a .git file (not directory) pointing to .bare
-func verifyWorktreeRepo() error {
-	// Check if .git exists and is a file (not a directory)
-	gitPath := ".git"
-	info, err := os.Stat(gitPath)
+// findWorktreeRoot walks up from the current directory to find the root of a
+// worktree-managed repository. A worktree-managed repo has a .git file (not
+// directory) at its root. Returns the absolute path to the root, or an error
+// if no such root is found.
+func findWorktreeRoot() (string, error) {
+	dir, err := os.Getwd()
 	if err != nil {
-		if os.IsNotExist(err) {
-			return fmt.Errorf("not in a worktree-managed repository")
+		return "", fmt.Errorf("failed to get current directory: %w", err)
+	}
+
+	for {
+		info, err := os.Stat(filepath.Join(dir, ".git"))
+		if err == nil && !info.IsDir() {
+			return dir, nil
 		}
-		return fmt.Errorf("failed to check .git: %w", err)
+
+		parent := filepath.Dir(dir)
+		if parent == dir {
+			break // reached filesystem root
+		}
+		dir = parent
 	}
 
-	// In a worktree-managed repo, .git should be a file, not a directory
-	if info.IsDir() {
-		return fmt.Errorf("not in a worktree-managed repository")
-	}
-
-	return nil
+	return "", fmt.Errorf("not in a worktree-managed repository")
 }
