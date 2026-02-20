@@ -134,6 +134,13 @@ func moveBinary(src, dst string) error {
 		return fmt.Errorf("failed to finalise binary: %w", err)
 	}
 
+	// Restore executable bit lost by os.Create (no-op on Windows where
+	// executability is determined by file extension, not permission bits).
+	if err := os.Chmod(dst, 0755); err != nil {
+		os.Remove(dst)
+		return fmt.Errorf("failed to set binary permissions: %w", err)
+	}
+
 	os.Remove(src) // best-effort cleanup of temp file
 	return nil
 }
