@@ -10,7 +10,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ### Core Components
 
-- **Go module**: `github.com/lucasmodrich/git-worktree-manager` (Go 1.25)
+- **Go module**: `github.com/lucasmodrich/git-worktree-manager` (Go 1.25.1)
 
 1. **Entry point**: `cmd/git-worktree-manager/main.go` — injects version via `-ldflags` at build time
 2. **CLI commands**: `internal/commands/` — one file per subcommand, using the Cobra framework
@@ -41,12 +41,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 | Command | Signature | Notes |
 |---------|-----------|-------|
 | `setup` | `setup <org>/<repo>` | Clone as bare repo + initial worktree |
-| `new-branch` | `new-branch <branch> [base]` | Create branch + worktree |
+| `new-branch` | `new-branch <branch-name> [base-branch]` | Create branch + worktree |
 | `list` | `list` | List active worktrees |
-| `remove` | `remove <branch> [--remote]` | Remove worktree + branch |
+| `remove` | `remove <branch>` | Remove worktree + branch; `--remote` also deletes remote branch |
 | `prune` | `prune` | Prune stale worktree refs |
 | `upgrade` | `upgrade` | Self-update binary |
-| `version` | `version` | Print version/commit/date |
+| `version` | `version` | Print version/build info, check GitHub for updates |
 
 ## Common Commands
 
@@ -60,7 +60,7 @@ go build -o gwtm ./cmd/git-worktree-manager
 ```bash
 make fmt            # gofmt -s -w .
 make lint           # golangci-lint run (if installed)
-make clean          # remove ./gwtm and ./gwtm.exe
+make clean          # remove ./gwtm and ./gwtm.exe; go clean
 ```
 
 ### Test
