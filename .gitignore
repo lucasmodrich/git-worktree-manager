@@ -1,3 +1,23 @@
-node_modules/coverage.txt
-git-worktree-manager
+# Build output
 gwtm
+gwtm.exe
+
+# GoReleaser output
+dist/
+
+# Go test and coverage
+*.test
+coverage.txt
+
+# Node.js
+node_modules/
+
+# IDE / editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS metadata
+.DS_Store
+Thumbs.db
