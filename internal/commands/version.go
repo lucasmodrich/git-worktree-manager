@@ -24,9 +24,16 @@ func init() {
 }
 
 func runVersion(cmd *cobra.Command, args []string) {
-	// Display current version
+	// Display current version and build info
 	currentVersion := GetVersion()
-	fmt.Printf("gwtm version %s\n", currentVersion)
+	commit := GetCommit()
+	date := GetDate()
+
+	if commit != "" && commit != "none" {
+		fmt.Printf("gwtm version %s (%s, %s)\n", currentVersion, commit, date)
+	} else {
+		fmt.Printf("gwtm version %s\n", currentVersion)
+	}
 
 	// Check for newer version on GitHub
 	ui.PrintStatus("🔍", "Checking for newer version on GitHub...")
@@ -45,7 +52,11 @@ func runVersion(cmd *cobra.Command, args []string) {
 	latestVer, err2 := version.ParseVersion(latestVersion)
 
 	if err1 != nil || err2 != nil {
-		ui.PrintStatus("⚠️", "Unable to compare versions")
+		if currentVersion == "dev" {
+			ui.PrintStatus("ℹ️", "Dev build — version comparison not available.")
+		} else {
+			ui.PrintStatus("⚠️", "Unable to compare versions.")
+		}
 		return
 	}
 
