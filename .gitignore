@@ -22,5 +22,5 @@ node_modules/
 .DS_Store
 Thumbs.db
 
-# Local Claude Settings
-.claude/
+# Local Claude Settings (machine-specific; skills are tracked separately)
+.claude/settings.local.json
