@@ -4,6 +4,7 @@ before:
   hooks:
     - go mod tidy
     - go test ./...
+    - go install github.com/josephspurrier/goversioninfo/cmd/goversioninfo@latest
 
 builds:
   - id: gwtm
@@ -18,6 +19,10 @@ builds:
     goarch:
       - amd64
       - arm64
+    hooks:
+      pre:
+        - cmd: go run ./cmd/git-worktree-manager/gen_versioninfo.go {{ .Version }}
+        - cmd: goversioninfo -64 -o cmd/git-worktree-manager/resource_windows.syso cmd/git-worktree-manager/versioninfo.json
     ldflags:
       - -s -w
       - -X main.version={{.Version}}
