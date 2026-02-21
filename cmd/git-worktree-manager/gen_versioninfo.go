@@ -13,14 +13,21 @@ import (
 	"strings"
 )
 
+type FileVersion struct {
+	Major uint16 `json:"Major"`
+	Minor uint16 `json:"Minor"`
+	Patch uint16 `json:"Patch"`
+	Build uint16 `json:"Build"`
+}
+
 type FixedFileInfo struct {
-	FileVersion    [4]uint16 `json:"FileVersion"`
-	ProductVersion [4]uint16 `json:"ProductVersion"`
-	FileFlagsMask  string    `json:"FileFlagsMask"`
-	FileFlags      string    `json:"FileFlags"`
-	FileOS         string    `json:"FileOS"`
-	FileType       string    `json:"FileType"`
-	FileSubType    string    `json:"FileSubType"`
+	FileVersion    FileVersion `json:"FileVersion"`
+	ProductVersion FileVersion `json:"ProductVersion"`
+	FileFlagsMask  string      `json:"FileFlagsMask"`
+	FileFlags      string      `json:"FileFlags"`
+	FileOS         string      `json:"FileOS"`
+	FileType       string      `json:"FileType"`
+	FileSubType    string      `json:"FileSubType"`
 }
 
 type StringFileInfo struct {
@@ -77,8 +84,8 @@ func main() {
 
 	vi := VersionInfo{
 		FixedFileInfo: FixedFileInfo{
-			FileVersion:    [4]uint16{uint16(major), uint16(minor), uint16(patch), 0},
-			ProductVersion: [4]uint16{uint16(major), uint16(minor), uint16(patch), 0},
+			FileVersion:    FileVersion{Major: uint16(major), Minor: uint16(minor), Patch: uint16(patch), Build: 0},
+			ProductVersion: FileVersion{Major: uint16(major), Minor: uint16(minor), Patch: uint16(patch), Build: 0},
 			FileFlagsMask:  "3f",
 			FileFlags:      "00",
 			FileOS:         "040004",
