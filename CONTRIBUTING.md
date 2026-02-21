@@ -275,6 +275,10 @@ GoReleaser
 
 Everything runs in a single workflow — no cross-workflow token issues, no Node.js, no separate release pipeline.
 
+### Manual publishing
+
+If the automated pipeline fails to publish a release (e.g. a transient CI error), go to **Actions → Release → Run workflow**, enter the existing tag (e.g. `v2.1.0`), and click **Run workflow**. The tag step is skipped and GoReleaser runs directly against that tag.
+
 ### Version bump rules
 
 Commit type determines the version bump — this is why the Conventional Commits format is required:
