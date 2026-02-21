@@ -1,11 +1,12 @@
 {
   "name": "git-worktree-manager",
   "version": "0.0.0-semantically-released",
-  "description": "`git-worktree-manager.sh` is a self-updating shell script for managing Git repositories using a **bare clone + worktree** workflow.",
+  "description": "`gwtm` is a self-updating Go CLI tool for managing Git repositories using a bare clone + worktree workflow.",
   "keywords": [
     "git",
     "worktree",
-    "bash",
+    "go",
+    "cli",
     "automation",
     "semantic-release"
   ],
@@ -16,7 +17,6 @@
     "@semantic-release/commit-analyzer": "^13.0.1",
     "@semantic-release/exec": "^7.1.0",
     "@semantic-release/git": "^10.0.1",
-    "@semantic-release/github": "^11.0.6",
     "@semantic-release/release-notes-generator": "^14.1.0",
     "semantic-release": "^24.2.8"
   }

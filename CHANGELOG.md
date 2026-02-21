@@ -1,154 +1,147 @@
-# [1.3.0](https://github.com/lucasmodrich/git-worktree-manager/compare/v1.2.0...v1.3.0) (2025-09-18)
+# Changelog
 
+All notable changes to this project will be documented in this file.
 
-### Bug Fixes
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-* **test:** comment out dry-run tests for PRs as they are not working (yet) as intended. Need some more time to ponder these. ([d90904c](https://github.com/lucasmodrich/git-worktree-manager/commit/d90904c712745215d41a55e76e56e394c6c46fa9))
+## [Unreleased]
 
+### Added
 
-### Features
+- Inject commit hash and build date into `version` command output
+- Comprehensive Go CLI implementation with full test suite
+- Spec-kit framework with baseline documentation
 
-* add progress indicators and GitHub Actions PR testing ([07fda81](https://github.com/lucasmodrich/git-worktree-manager/commit/07fda81ee12d1186b3d213f8b20d7a91f62d7063))
+### Changed
 
-# [1.2.0](https://github.com/lucasmodrich/git-worktree-manager/compare/v1.1.7...v1.2.0) (2025-09-18)
+- Binary renamed from `git-worktree-manager` to `gwtm`
+- Improved `.gitignore`, updated license year
 
+### Removed
 
-### Bug Fixes
+- Bash script (`git-worktree-manager.sh`) and all associated scaffolding — replaced by the Go CLI
 
-* resolve --dry-run argument parsing bug ([8187b69](https://github.com/lucasmodrich/git-worktree-manager/commit/8187b69e48581ab65d66f5359fdb6f65e4d7e7ee))
+### Fixed
 
+- CI: upgraded Go toolchain to 1.25.1 to resolve `covdata` error
+- Tests: detect default branch dynamically in remote integration tests
+- Tests: resolved test failures in CI environment
 
-### Features
+## [1.3.0] - 2025-09-18
 
-* add major improvements to git-worktree-manager script ([c447df5](https://github.com/lucasmodrich/git-worktree-manager/commit/c447df550af99f638f82dba65bb4f9d2e90c8dbd))
+### Added
 
-## [1.1.7](https://github.com/lucasmodrich/git-worktree-manager/compare/v1.1.6...v1.1.7) (2025-09-17)
+- Progress indicators for long-running operations
+- GitHub Actions workflow for PR testing
 
+### Fixed
 
-### Bug Fixes
+- Disabled dry-run tests for PRs that were not behaving as intended
 
-* **upgrade:** further tweaks to fix upgrade version checks ([8245237](https://github.com/lucasmodrich/git-worktree-manager/commit/824523744581f282aa3aed0e5e07db6c8d4975a8))
+## [1.2.0] - 2025-09-18
 
-## [1.1.6](https://github.com/lucasmodrich/git-worktree-manager/compare/v1.1.5...v1.1.6) (2025-09-17)
+### Added
 
+- Major improvements to the git-worktree-manager script (additional flags, improved UX)
 
-### Bug Fixes
+### Fixed
 
-* **test:** fixing test cases. ([ec86d71](https://github.com/lucasmodrich/git-worktree-manager/commit/ec86d71270704d84128baf980cb524a32d5fd963))
+- `--dry-run` argument parsing bug
 
-## [1.1.5](https://github.com/lucasmodrich/git-worktree-manager/compare/v1.1.4...v1.1.5) (2025-09-17)
+## [1.1.7] - 2025-09-17
 
+### Fixed
 
-### Bug Fixes
+- Further tweaks to upgrade version-check logic
 
-* further fixes to the script upgrade process ([78ea31e](https://github.com/lucasmodrich/git-worktree-manager/commit/78ea31e12bab755ba9c2653490b818e03f133167))
+## [1.1.6] - 2025-09-17
 
-## [1.1.4](https://github.com/lucasmodrich/git-worktree-manager/compare/v1.1.3...v1.1.4) (2025-09-17)
+### Fixed
 
+- Test case corrections
 
-### Bug Fixes
+## [1.1.5] - 2025-09-17
 
-* **upgrade:** Improve upgrade version detection and modularise the script to improve reusability. ([bdd5a44](https://github.com/lucasmodrich/git-worktree-manager/commit/bdd5a446c0638e5ccaf0350870686c4ece145d5d))
+### Fixed
 
-## [1.1.3](https://github.com/lucasmodrich/git-worktree-manager/compare/v1.1.2...v1.1.3) (2025-09-17)
+- Further fixes to the self-upgrade process
 
+## [1.1.4] - 2025-09-17
 
-### Bug Fixes
+### Fixed
 
-* Update git-worktree-manager.sh to echo progress of downloaded files ([e3c132a](https://github.com/lucasmodrich/git-worktree-manager/commit/e3c132a3c2ebe5eec361d22448b64bc7322dc61d))
+- Improved upgrade version detection; modularised script for better reusability
 
-## [1.1.2](https://github.com/lucasmodrich/git-worktree-manager/compare/v1.1.1...v1.1.2) (2025-09-17)
+## [1.1.3] - 2025-09-17
 
+### Fixed
 
-### Bug Fixes
+- Script now echoes progress of downloaded files during upgrade
 
-* Update git-worktree-manager.sh to ensure $RAW_BRANCH_URL variable is used correctly. ([0489853](https://github.com/lucasmodrich/git-worktree-manager/commit/0489853b17e00e8a02f6a7b5f730d79c85c3e518))
+## [1.1.2] - 2025-09-17
 
-## [1.1.1](https://github.com/lucasmodrich/git-worktree-manager/compare/v1.1.0...v1.1.1) (2025-09-17)
+### Fixed
 
+- `$RAW_BRANCH_URL` variable used correctly in upgrade flow
 
-### Bug Fixes
+## [1.1.1] - 2025-09-17
 
-* Update git-worktree-manager.sh to remove additional trailing \ from RAW_REPO_URL ([1cfea71](https://github.com/lucasmodrich/git-worktree-manager/commit/1cfea7195a0a6b76d087c6d75e39b24cb4def209))
+### Fixed
 
-# [1.1.0](https://github.com/lucasmodrich/git-worktree-manager/compare/v1.0.2...v1.1.0) (2025-09-17)
+- Removed trailing backslash from `RAW_REPO_URL` that broke upgrade downloads
 
+## [1.1.0] - 2025-09-17
 
-### Features
+### Added
 
-* **upgrade:** Improve upgrade to also include download of README, VERSION and LICENCE files ([43aa5ac](https://github.com/lucasmodrich/git-worktree-manager/commit/43aa5ac68aa8e66fff0b4a1c2cf8bcfef6b592c0))
+- Upgrade command now also downloads `README`, `VERSION`, and `LICENSE` files
 
-## [1.0.2](https://github.com/lucasmodrich/git-worktree-manager/compare/v1.0.1...v1.0.2) (2025-09-17)
+## [1.0.2] - 2025-09-17
 
+### Fixed
 
-### Bug Fixes
+- Corrected `RAW_URL` variable used by the self-upgrade command
 
-* correct the RAW_URL variable where the upgrade is pulled from. ([0002fe7](https://github.com/lucasmodrich/git-worktree-manager/commit/0002fe769ee789bff87fcd32190f0214c91d8e1c))
-* merge conflict ([c080d08](https://github.com/lucasmodrich/git-worktree-manager/commit/c080d08e12f3fe1e8c1cdd696bf013c1b18324ba))
+## [1.0.1] - 2025-09-17
 
-## [1.0.1](https://github.com/lucasmodrich/git-worktree-manager/compare/v1.0.0...v1.0.1) (2025-09-17)
+### Fixed
 
-### Bug Fixes
+- Version number management in script now handled correctly during release
+- Version file committed as part of the automated release process
+- Self-upgrade now deploys to `~/.git-worktree-manager`
+- Release process: pre-releases triggered correctly from dev branch
 
-* correcting management of the version in git-worktree-manager.sh' ([b292506](https://github.com/lucasmodrich/git-worktree-manager/commit/b2925060d90878fd1da6b0cd45a22dec3aa9cb86))
-* ensure the version number update made to git-worktree-manager.sh is committed as part of the release process.' ([445b899](https://github.com/lucasmodrich/git-worktree-manager/commit/445b8997355bf0279e024e33f3c9649e62d88154))
-* futher fixes for release management ([9956406](https://github.com/lucasmodrich/git-worktree-manager/commit/99564063e14d70366f8dede5e4385786d6ea144b))
-* Improve release process to trigger pre-release from dev branch. Also ensure version number in git-worktree-manager.sh is updated during the release process. ([4d7de9d](https://github.com/lucasmodrich/git-worktree-manager/commit/4d7de9d35bcf61ad92d363c93b9b5dd4d21cc0ba))
-* improve script self-upgrade process. Now deploys to /home/modrich/.git-worktree-manager ([be2850b](https://github.com/lucasmodrich/git-worktree-manager/commit/be2850b87fe54e6e5a5b3606a47082dffa8bf450))
+## [1.0.0] - 2025-09-17
 
-## [1.0.1-beta.4](https://github.com/lucasmodrich/git-worktree-manager/compare/v1.0.1-beta.3...v1.0.1-beta.4) (2025-09-17)
+### Added
 
+- Initial `git-worktree-manager.sh` script for cloning repos as bare clones and managing worktrees
+- Support for multiple modes (setup, new-branch, list)
+- Automatic pushing of new branches to GitHub remote
+- Versioning and self-upgrade capability
+- Automated release workflow via semantic-release
 
-### Bug Fixes
+### Changed
 
-* improve script self-upgrade process. Now deploys to /home/modrich/.git-worktree-manager ([be2850b](https://github.com/lucasmodrich/git-worktree-manager/commit/be2850b87fe54e6e5a5b3606a47082dffa8bf450))
+- Improved branch creation and detection logic
+- Command-line flag `-h` used for help (avoids conflict with `git -h` which invokes Git's own help)
 
-## [1.0.1-beta.3](https://github.com/lucasmodrich/git-worktree-manager/compare/v1.0.1-beta.2...v1.0.1-beta.3) (2025-09-17)
+### Fixed
 
+- Clean release after stale tag removal
 
-### Bug Fixes
-
-* ensure the version number update made to git-worktree-manager.sh is committed as part of the release process.' ([445b899](https://github.com/lucasmodrich/git-worktree-manager/commit/445b8997355bf0279e024e33f3c9649e62d88154))
-
-## [1.0.1-beta.2](https://github.com/lucasmodrich/git-worktree-manager/compare/v1.0.1-beta.1...v1.0.1-beta.2) (2025-09-17)
-
-
-### Bug Fixes
-
-* correcting management of the version in git-worktree-manager.sh' ([b292506](https://github.com/lucasmodrich/git-worktree-manager/commit/b2925060d90878fd1da6b0cd45a22dec3aa9cb86))
-* futher fixes for release management ([9956406](https://github.com/lucasmodrich/git-worktree-manager/commit/99564063e14d70366f8dede5e4385786d6ea144b))
-
-## [1.0.1-beta.1](https://github.com/lucasmodrich/git-worktree-manager/compare/v1.0.0...v1.0.1-beta.1) (2025-09-17)
-
-
-### Bug Fixes
-
-* Improve release process to trigger pre-release from dev branch. Also ensure version number in git-worktree-manager.sh is updated during the release process. ([4d7de9d](https://github.com/lucasmodrich/git-worktree-manager/commit/4d7de9d35bcf61ad92d363c93b9b5dd4d21cc0ba))
-
-# 1.0.0 (2025-09-17)
-
-
-### Bug Fixes
-
-* trigger clean release after tag removal ([aec3ece](https://github.com/lucasmodrich/git-worktree-manager/commit/aec3ecee1d19d184e10e06e86f8ffe3b35ca9375))
-* Update commandline flags to support -h as --help triggers Git help when called via usage: git [-v | --version] [-h | --help] [-C <path>] [-c <name>=<value>] ([f22a7a7](https://github.com/lucasmodrich/git-worktree-manager/commit/f22a7a7b085122c50c1c7513f3344d7f081a23f2))
-
-
-### chore
-
-* **ci-release:** add automated release workflow with semantic-release ([ffb291f](https://github.com/lucasmodrich/git-worktree-manager/commit/ffb291f3e85d4f8494a0a1c240baac53bf5cdac6))
-
-
-### Features
-
-* Added new script  that helps to automate the cloning of a repo from GitHub to be used in conjunction with Git Worktrees. Additionally added the README.md to provide documentation for use ([9dfc1f1](https://github.com/lucasmodrich/git-worktree-manager/commit/9dfc1f17297f03dce01d8b27f102af1b6d156574))
-* enhance git worktree manager with additional modes and update docs ([685743c](https://github.com/lucasmodrich/git-worktree-manager/commit/685743c248cc999156421cdf5f8ae84463790292))
-* Enhance setup script to include automatic pushing of new branches to GitHub ([9221b59](https://github.com/lucasmodrich/git-worktree-manager/commit/9221b59d0364588f71f3ff7e0d88756d238f5c02))
-* enhance worktree manager with versioning and self-upgrade ([b8d5576](https://github.com/lucasmodrich/git-worktree-manager/commit/b8d557652bd7e8dbcd8f7fe3c2ae72f35f00b85c))
-* Refactor setup script to improve branch creation and detection logic ([1201340](https://github.com/lucasmodrich/git-worktree-manager/commit/12013401869bd6bc5a5126f33853fcf9d9c9f811))
-
-
-### BREAKING CHANGES
-
-* **ci-release:** Introduces mandatory conventional commit format for future commits via hook
-* Updated script structure may require re-sourcing or re-executing in some environments
+[Unreleased]: https://github.com/lucasmodrich/git-worktree-manager/compare/v1.3.0...HEAD
+[1.3.0]: https://github.com/lucasmodrich/git-worktree-manager/compare/v1.2.0...v1.3.0
+[1.2.0]: https://github.com/lucasmodrich/git-worktree-manager/compare/v1.1.7...v1.2.0
+[1.1.7]: https://github.com/lucasmodrich/git-worktree-manager/compare/v1.1.6...v1.1.7
+[1.1.6]: https://github.com/lucasmodrich/git-worktree-manager/compare/v1.1.5...v1.1.6
+[1.1.5]: https://github.com/lucasmodrich/git-worktree-manager/compare/v1.1.4...v1.1.5
+[1.1.4]: https://github.com/lucasmodrich/git-worktree-manager/compare/v1.1.3...v1.1.4
+[1.1.3]: https://github.com/lucasmodrich/git-worktree-manager/compare/v1.1.2...v1.1.3
+[1.1.2]: https://github.com/lucasmodrich/git-worktree-manager/compare/v1.1.1...v1.1.2
+[1.1.1]: https://github.com/lucasmodrich/git-worktree-manager/compare/v1.1.0...v1.1.1
+[1.1.0]: https://github.com/lucasmodrich/git-worktree-manager/compare/v1.0.2...v1.1.0
+[1.0.2]: https://github.com/lucasmodrich/git-worktree-manager/compare/v1.0.1...v1.0.2
+[1.0.1]: https://github.com/lucasmodrich/git-worktree-manager/compare/v1.0.0...v1.0.1
+[1.0.0]: https://github.com/lucasmodrich/git-worktree-manager/releases/tag/v1.0.0

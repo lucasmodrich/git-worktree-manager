@@ -1,68 +1,89 @@
-# Git Worktree Manager
+# Git Worktree Manager (`gwtm`)
 
 ## 📌 Overview
-`git-worktree-manager.sh` is a self-updating shell script for managing Git repositories using a **bare clone + worktree** workflow.
-I created this project following frustration using the standard tooling.
 
-It supports:
+`gwtm` is a CLI tool for managing Git repositories using a **bare clone + worktree** workflow. It removes the friction of multi-branch development by giving each branch its own dedicated working directory — no stashing, no switching, no detached HEADs.
 
-- **Full setup** from GitHub using `org/repo` shorthand with input validation
+Features:
+- **Full setup** from GitHub using `org/repo` shorthand
 - **Branch creation** with automatic remote push
 - **Worktree listing**, pruning, and removal with optional remote cleanup
-- **Version tracking** and **self-upgrade** with robust error handling
-- **Dry-run mode** for safe preview of actions
-- **Configurable installation** directory
-- **Comprehensive testing** suite
-- **Markdown-style help card** for onboarding
+- **Self-upgrade** with checksum verification
+- **Dry-run mode** to preview any operation before executing it
+- **Configurable installation** directory via environment variable
+- Works from **any subdirectory** within a managed repository
 
 ---
 
 ## 🚀 Installation
 
-By default `git-worktree-manager` will install and update itself into the `$HOME/.git-worktree-manager/` (`~/.git-worktree-manager`) folder.
-
-### Custom Installation Directory
-
-You can customize the installation directory by setting the `GIT_WORKTREE_MANAGER_HOME` environment variable:
+### Download Pre-built Binary (Recommended)
 
 ```bash
-export GIT_WORKTREE_MANAGER_HOME="/opt/git-tools"
-./git-worktree-manager.sh --upgrade
+# Linux amd64
+curl -L https://github.com/lucasmodrich/git-worktree-manager/releases/latest/download/gwtm_Linux_x86_64 -o gwtm
+chmod +x gwtm
+sudo mv gwtm /usr/local/bin/
+
+# macOS Apple Silicon (M1/M2/M3)
+curl -L https://github.com/lucasmodrich/git-worktree-manager/releases/latest/download/gwtm_Darwin_arm64 -o gwtm
+chmod +x gwtm
+sudo mv gwtm /usr/local/bin/
+
+# macOS Intel
+curl -L https://github.com/lucasmodrich/git-worktree-manager/releases/latest/download/gwtm_Darwin_x86_64 -o gwtm
+chmod +x gwtm
+sudo mv gwtm /usr/local/bin/
+
+# Windows (PowerShell)
+# Download gwtm_Windows_x86_64.exe from the releases page, rename to gwtm.exe, and add to PATH
 ```
 
-This will install the script to `/opt/git-tools/` instead of the default location.
+### Build from Source
 
+Requires Go 1.25.1 or later.
 
-To install directly from this GitHub repo, use the following command:
 ```bash
-curl -sSL https://raw.githubusercontent.com/lucasmodrich/git-worktree-manager/refs/heads/main/git-worktree-manager.sh | bash -s -- --upgrade
+git clone https://github.com/lucasmodrich/git-worktree-manager.git
+cd git-worktree-manager
+go build -o gwtm ./cmd/git-worktree-manager
+# Move the binary somewhere on your PATH, e.g.:
+sudo mv gwtm /usr/local/bin/
 ```
 
-## 🧠 Versioning & Upgrade
+### Self-Upgrade
 
-- Check version:
-  ```bash
-  ./git-worktree-manager.sh --version
-  ```
-- Upgrade to latest from GitHub:
-  ```bash
-  ./git-worktree-manager.sh --upgrade
-  ```
-
-
-## 📂 Folder Structure
-
-After setup:
-```
-<repo-name>/
-├── .bare/             # Bare repository clone
-├── .git               # Points to .bare
-└── <default-branch>/  # Initial worktree
+```bash
+gwtm upgrade
 ```
 
 ---
 
-## 🖼 Architecture Diagram
+## 📂 Repository Structure
+
+After running `gwtm setup`, the following structure is created:
+
+```
+<repo-name>/
+├── .bare/             # Bare repository clone (Git objects & metadata)
+├── .git               # File pointing to .bare
+└── <default-branch>/  # Initial worktree, ready to work in
+```
+
+Additional worktrees are added as sibling directories:
+
+```
+<repo-name>/
+├── .bare/
+├── .git
+├── main/
+├── feature-auth/
+└── bugfix-crash/
+```
+
+---
+
+## 🖼 Architecture
 
 ```
                 ┌───────────────────────────┐
@@ -73,241 +94,131 @@ After setup:
      ┌────────────────────────┼────────────────────────┐
      │                        │                        │
 ┌──────────────┐       ┌──────────────┐        ┌──────────────┐
-│ main/        │       │ feature-x/   │        │ bugfix-y/    │
+│ main/        │       │ feature-auth/│        │ bugfix-crash/│
 │ (worktree)   │       │ (worktree)   │        │ (worktree)   │
 └──────────────┘       └──────────────┘        └──────────────┘
 ```
 
 ---
 
-## 🔄 Flow Diagrams
-
-### Full Setup
-```
-Input: [--dry-run] <org>/<repo>
-→ Validate repository format
-→ [DRY-RUN] Preview actions OR
-→ Create root folder
-→ Clone into .bare
-→ Point .git to .bare
-→ Configure fetch
-→ Fetch branches
-→ Detect default branch
-→ Create worktree
-→ Push if new
-```
-
-### Branch Creation
-```
-Input: [--dry-run] --new-branch <branch> [base]
-→ [DRY-RUN] Preview actions OR
-→ Fetch branches
-→ Create worktree
-→ Push if new
-```
-
-### Branch Removal
-```
-Input: [--dry-run] --remove <branch> [--remote]
-→ [DRY-RUN] Preview actions OR
-→ Remove worktree
-→ Delete local branch
-→ [OPTIONAL] Delete remote branch
-```
-
----
-
-## 🌐 Local ↔ Remote Relationship
-
-```
-GitHub Remote (origin)
-┌────────────────────┐
-│ origin/main        │
-│ origin/feature-x   │
-└──────────┬─────────┘
-           ▼
-       .bare repo
-           ▼
-┌──────────────┐
-│ feature-x/   │
-└──────────────┘
-```
-
----
-
 ## 🚀 Usage
 
-### Make executable
-```bash
-chmod +x git-worktree-manager.sh
-```
+### Help
 
----
+```bash
+gwtm --help
+gwtm <command> --help
+```
 
 ### Full Setup
+
+Clone a repository and create the initial worktree in one step:
+
 ```bash
-./git-worktree-manager.sh your-org/your-repo
+gwtm setup your-org/your-repo
+# also accepts full SSH URL:
+gwtm setup git@github.com:your-org/your-repo.git
 ```
 
----
+### Create a Branch Worktree
 
-### Create New Branch
+Creates a new branch (or checks out an existing one) and adds a worktree for it. Use hyphens in branch names — slashes are not supported as they conflict with directory paths.
+
 ```bash
-./git-worktree-manager.sh --new-branch <branch> [base]
+# New branch from the default branch
+gwtm new-branch feature-login
+
+# New branch from a specific base
+gwtm new-branch bugfix-crash main
+
+# Check out an existing remote branch
+gwtm new-branch feature-login    # detects it exists on remote and prompts
 ```
 
----
+### Remove a Worktree and Branch
 
-### Remove Worktree + Branch
 ```bash
-# Remove worktree and local branch only
-./git-worktree-manager.sh --remove <branch>
+# Remove worktree and local branch
+gwtm remove feature-login
 
-# Remove worktree, local branch, AND remote branch
-./git-worktree-manager.sh --remove <branch> --remote
+# Remove worktree, local branch, and remote branch
+gwtm remove feature-login --remote
 ```
-
----
 
 ### List Worktrees
-```bash
-./git-worktree-manager.sh --list
-```
 
----
+```bash
+gwtm list
+```
 
 ### Prune Stale Worktrees
+
 ```bash
-./git-worktree-manager.sh --prune
+gwtm prune
 ```
 
----
+### Version
 
-### Show Version
 ```bash
-./git-worktree-manager.sh --version
+gwtm version      # shows local version and checks for updates
+gwtm --version    # quick version output (no network check)
 ```
 
----
+### Upgrade
 
-### Upgrade Script
 ```bash
-./git-worktree-manager.sh --upgrade
+gwtm upgrade
 ```
 
----
+### Dry-Run Mode
 
-### Help Card
-```bash
-./git-worktree-manager.sh --help
-./git-worktree-manager.sh -h
-```
-
----
-
-### Dry-run Mode
-
-Preview actions without executing them:
+Preview any operation without executing it:
 
 ```bash
-# Preview repository setup
-./git-worktree-manager.sh --dry-run acme/webapp
-
-# Preview branch creation (--dry-run can be anywhere in the command)
-./git-worktree-manager.sh --dry-run --new-branch feature/test
-./git-worktree-manager.sh --new-branch feature/test main --dry-run
-
-# Preview branch removal
-./git-worktree-manager.sh --dry-run --remove feature/old-branch --remote
+gwtm --dry-run setup acme/webapp
+gwtm --dry-run new-branch feature-payments
+gwtm --dry-run remove feature-payments --remote
 ```
 
 ---
 
 ## 📖 Example Workflows
 
-### Basic Workflow
+### Start a new feature
+
 ```bash
-# Setup repository
-./git-worktree-manager.sh acme/webapp
+# Set up the repository (once)
+gwtm setup acme/webapp
+cd acme/webapp
 
-# Create feature branch
-./git-worktree-manager.sh --new-branch feature/login-page
+# Create a feature branch and worktree
+gwtm new-branch feature-login
+cd feature-login
 
-# Work in the branch
-cd feature/login-page
+# Do your work
 git add .
-git commit -m "Add login page"
+git commit -m "feat: add login page"
 git push
 
-# Clean up (local only)
+# When done, go back up and clean up
 cd ..
-./git-worktree-manager.sh --remove feature/login-page
+gwtm remove feature-login --remote
 ```
 
-### Advanced Workflow with Dry-run and Remote Cleanup
-```bash
-# Preview setup first
-./git-worktree-manager.sh --dry-run acme/webapp
-
-# Actually setup
-./git-worktree-manager.sh acme/webapp
-
-# Preview branch creation
-./git-worktree-manager.sh --dry-run --new-branch feature/advanced-feature
-
-# Create the branch
-./git-worktree-manager.sh --new-branch feature/advanced-feature
-
-# Work and commit
-cd feature/advanced-feature
-git add .
-git commit -m "Implement advanced feature"
-git push
-
-# Complete cleanup including remote branch
-cd ..
-./git-worktree-manager.sh --remove feature/advanced-feature --remote
-```
-
-### Custom Installation Directory
-```bash
-# Set custom installation directory
-export GIT_WORKTREE_MANAGER_HOME="/opt/dev-tools"
-
-# Install to custom location
-curl -sSL https://raw.githubusercontent.com/lucasmodrich/git-worktree-manager/refs/heads/main/git-worktree-manager.sh | bash -s -- --upgrade
-
-# Script is now available in /opt/dev-tools/
-/opt/dev-tools/git-worktree-manager.sh --version
-```
-
----
-
-## 🧪 Testing
-
-The script includes a comprehensive test suite to ensure reliability:
+### Pick up a colleague's branch
 
 ```bash
-# Run all tests
-./tests/run_all_tests.sh
-
-# Run individual test suites
-./tests/version_compare_tests.sh      # Semantic version comparison
-./tests/input_validation_tests.sh    # Repository format validation
-./tests/dry_run_tests.sh             # Dry-run functionality
+cd acme/webapp
+gwtm new-branch feature-payments   # detects remote branch, prompts to check out
+cd feature-payments
 ```
 
-Current test coverage: **36 tests, 100% passing** ✅
+### Preview before acting
 
----
-
-## 🔒 Security & Reliability
-
-- **Input validation**: Repository formats are validated against known patterns
-- **Error handling**: Comprehensive error checking for network operations
-- **Safe operations**: Dry-run mode allows preview before execution
-- **No command injection**: All user inputs are properly sanitized
-- **Atomic downloads**: Upgrade operations use temporary files for safety
+```bash
+gwtm --dry-run setup acme/webapp
+gwtm --dry-run remove old-branch --remote
+```
 
 ---
 
@@ -315,43 +226,61 @@ Current test coverage: **36 tests, 100% passing** ✅
 
 ### Environment Variables
 
-- `GIT_WORKTREE_MANAGER_HOME`: Custom installation directory (default: `$HOME/.git-worktree-manager`)
+| Variable | Default | Description |
+|---|---|---|
+| `GIT_WORKTREE_MANAGER_HOME` | `$HOME/.git-worktree-manager` | Installation directory for `gwtm upgrade` |
 
-### Git Alias Setup
-
-For convenience, add this alias to your `~/.gitconfig`:
+### Git Alias (optional)
 
 ```ini
+# ~/.gitconfig
 [alias]
-    wtm = "!bash $HOME/.git-worktree-manager/git-worktree-manager.sh"
+    wt = "!gwtm"
 ```
 
-Then use: `git wtm --help`
+Then use: `git wt list`, `git wt new-branch feature-x`, etc.
 
-> **Note**: The `--help` flag doesn't work when called via `git` as it invokes Git's built-in help.
+---
+
+## 🧪 Testing
+
+```bash
+# Run Go tests
+go test ./...
+
+# Run with coverage
+go test -coverprofile=coverage.txt ./...
+go tool cover -html=coverage.txt
+```
+
+---
+
+## 🔒 Security & Reliability
+
+- **Input validation**: Repository formats are validated; branch names with path separators are rejected
+- **Checksum verification**: `gwtm upgrade` verifies SHA-256 checksums before replacing the binary
+- **Atomic upgrades**: New binary downloaded to a temp file and moved into place only after verification
+- **Dry-run mode**: Preview any destructive operation before executing it
+- **Cleanup on failure**: `gwtm setup` removes the partial directory if any step fails
 
 ---
 
 ## ✅ Benefits
 
-- **Disk-efficient** multi-branch development
-- **No detached HEADs** - each branch has its own working directory
-- **Safe operations** with dry-run mode and input validation
-- **Easy onboarding** with comprehensive help and examples
-- **Self-updating** and version-aware with robust error handling
-- **GitHub-native** workflow with SSH and HTTPS support
-- **Configurable** installation and behavior
-- **Well-tested** with comprehensive test suite
-- **Ubuntu-optimized** for reliable bash script execution
+- **Disk-efficient** multi-branch development — shared object store, no redundant copies
+- **No detached HEADs** — each branch has its own working directory
+- **No stashing** — switch contexts by changing directories
+- **Cross-platform** — runs on Linux, macOS, and Windows
+- **Self-updating** with version comparison and checksum verification
 
 ---
 
 ## 🛠 Requirements
 
-- **Bash 4.0+** (Ubuntu default)
-- **Git 2.0+** with worktree support
-- **curl** for self-update functionality
+- **Git 2.5+** (worktree support)
 - **SSH access** to GitHub (recommended) or HTTPS
+
+The `gwtm` binary is statically compiled with no additional runtime dependencies.
 
 ---
 
