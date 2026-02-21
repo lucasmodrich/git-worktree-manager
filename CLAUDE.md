@@ -52,15 +52,18 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ### Build
 ```bash
-make build          # produces ./gwtm
 go build -o gwtm ./cmd/git-worktree-manager
 ```
 
-### Format / Lint / Clean
+### Format / Lint
 ```bash
-make fmt            # gofmt -s -w .
-make lint           # golangci-lint run (if installed)
-make clean          # remove ./gwtm and ./gwtm.exe; go clean
+gofmt -s -w .
+golangci-lint run   # if installed
+```
+
+### Clean
+```bash
+rm -f gwtm gwtm.exe
 ```
 
 ### Test
@@ -69,9 +72,9 @@ go test ./...
 go test -v -race -coverprofile=coverage.txt -covermode=atomic ./...
 ```
 
-### Install
+### Local snapshot build (all platforms, with version injection)
 ```bash
-make install        # copies to $GOPATH/bin or $HOME/.git-worktree-manager/
+goreleaser release --snapshot --clean
 ```
 
 ### Smoke test

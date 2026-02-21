@@ -22,7 +22,6 @@ Thank you for your interest in contributing. This document covers everything you
 |------|----------------|---------|
 | [Go](https://go.dev/dl/) | 1.25.1 | Build and test |
 | [Git](https://git-scm.com/) | 2.5 | Worktree support required for integration tests |
-| [make](https://www.gnu.org/software/make/) | any | Convenience targets (optional) |
 | [golangci-lint](https://golangci-lint.run/usage/install/) | any | Linting (optional, but recommended) |
 
 ---
@@ -57,7 +56,7 @@ go mod download
 ### 4. Build and verify
 
 ```bash
-make build          # produces ./gwtm in the project root
+go build -o gwtm ./cmd/git-worktree-manager
 ./gwtm --help       # confirm the binary works
 ```
 
@@ -93,12 +92,12 @@ make build          # produces ./gwtm in the project root
 ├── .github/
 │   └── workflows/
 │       ├── test.yml         # Runs on every PR and push
-│       ├── release.yml      # Runs semantic-release on merge to main
-│       └── goreleaser.yml   # Builds binaries when a tag is pushed
+│       ├── release.yml      # Runs semantic-release on merge to main (versioning + changelog)
+│       └── goreleaser.yml   # Triggered by a new tag; builds binaries and creates GitHub release
 ├── .githooks/
 │   └── commit-msg           # Enforces Conventional Commits format
-├── .goreleaser.yml          # Cross-platform binary build config
-└── release.config.js        # semantic-release configuration
+├── .goreleaser.yml          # Cross-platform binary build and GitHub release config
+└── release.config.js        # semantic-release: version bump, CHANGELOG.md, VERSION file, git tag
 ```
 
 ### Key design decisions
@@ -115,16 +114,12 @@ make build          # produces ./gwtm in the project root
 ### Build
 
 ```bash
-make build
-# or
 go build -o gwtm ./cmd/git-worktree-manager
 ```
 
 ### Test
 
 ```bash
-make test
-# or
 go test ./...
 
 # With race detection and coverage (matches CI)
@@ -136,17 +131,13 @@ Tests use `t.TempDir()` and local bare repositories — no network access requir
 ### Format
 
 ```bash
-make fmt
-# or
 gofmt -s -w .
 ```
 
 ### Lint
 
 ```bash
-make lint
-# or (if golangci-lint is installed)
-golangci-lint run
+golangci-lint run   # if installed
 ```
 
 ### Manual smoke test with dry-run
@@ -156,6 +147,15 @@ The `--dry-run` flag lets you exercise any command without touching the filesyst
 ```bash
 ./gwtm --dry-run setup your-org/your-repo
 ./gwtm --dry-run new-branch feature-test
+```
+
+### Local multi-platform build (snapshot)
+
+To build binaries for all target platforms locally with version info injected, use GoReleaser in snapshot mode:
+
+```bash
+goreleaser release --snapshot --clean
+# Outputs to ./dist/
 ```
 
 ---
@@ -222,7 +222,7 @@ Commits that do not match the pattern will be rejected locally by the hook:
 
 4. **Format your code:**
    ```bash
-   make fmt
+   gofmt -s -w .
    ```
 
 5. **Push and open a PR against `main`:**
@@ -251,13 +251,50 @@ Commits that do not match the pattern will be rejected locally by the hook:
 
 Releases are fully automated — you do not need to do anything manually.
 
-1. A PR is merged into `main`.
-2. The **Release** workflow runs [`semantic-release`](https://semantic-release.gitbook.io/), which analyses commit messages since the last release.
-3. If there are `feat`, `fix`, or `perf` commits, semantic-release bumps the version, updates `CHANGELOG.md` and `VERSION`, and creates a Git tag.
-4. The new tag triggers the **GoReleaser** workflow, which compiles binaries for Linux, macOS (Intel + Apple Silicon), and Windows, and attaches them to the GitHub release.
+### How it works
 
-This means:
-- `docs:`, `chore:`, `test:`, and `refactor:` commits will **not** trigger a release on their own.
-- Every `fix:` commit produces a patch release.
-- Every `feat:` commit produces a minor release.
-- A breaking change produces a major release.
+```
+Merge to main
+     │
+     ▼
+semantic-release (release.yml)
+  • Analyses commits since last release
+  • Bumps version (patch / minor / major)
+  • Updates CHANGELOG.md and VERSION
+  • Commits those files [skip ci]
+  • Creates and pushes a git tag (e.g. v2.1.0)
+     │
+     ▼ (tag push triggers)
+GoReleaser (goreleaser.yml)
+  • Runs go mod tidy and go test ./...
+  • Compiles binaries for Linux, macOS (Intel + Apple Silicon), Windows
+  • Creates the GitHub release with generated release notes
+  • Attaches binaries and checksums.txt
+```
+
+### Ownership split
+
+| Responsibility | Tool |
+|---|---|
+| Determine next version | semantic-release |
+| Update `CHANGELOG.md` | semantic-release |
+| Update `VERSION` file | semantic-release |
+| Create git tag | semantic-release |
+| Create GitHub release | **GoReleaser** |
+| Build and upload binaries | **GoReleaser** |
+| Generate release notes body | **GoReleaser** |
+
+### Version bump rules
+
+Commit type determines the version bump — this is why the Conventional Commits format is required:
+
+| Commit type | Effect |
+|---|---|
+| `feat` | Minor bump (`1.2.0` → `1.3.0`) |
+| `fix`, `perf` | Patch bump (`1.2.0` → `1.2.1`) |
+| `feat!` / `BREAKING CHANGE` | Major bump (`1.2.0` → `2.0.0`) |
+| `docs`, `chore`, `test`, `refactor` | No release triggered |
+
+### Pre-releases
+
+Pushing to the `dev` branch produces a pre-release with the `-beta` suffix (e.g. `v2.1.0-beta.1`). These are tagged and released the same way as production releases.

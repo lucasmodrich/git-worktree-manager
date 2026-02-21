@@ -20,12 +20,5 @@ module.exports = {
             assets: ['CHANGELOG.md', 'VERSION'],
             message: 'chore(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}'
         }],
-        ['@semantic-release/github', {
-            assets: [
-                { path: 'README.md', label: 'README.md' },
-                { path: 'LICENSE', label: 'License' },
-                { path: 'VERSION', label: 'Version' },
-            ]
-        }],
     ]
 };

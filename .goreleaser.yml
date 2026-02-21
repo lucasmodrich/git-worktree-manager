@@ -41,18 +41,10 @@ snapshot:
   version_template: "{{ .Tag }}-next"
 
 changelog:
+  use: github
   sort: asc
   filters:
     exclude:
       - "^docs:"
       - "^test:"
       - "^chore:"
-
-release:
-  github:
-    owner: lucasmodrich
-    name: git-worktree-manager
-  extra_files:
-    - glob: ./README.md
-    - glob: ./VERSION
-    - glob: ./LICENSE

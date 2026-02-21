@@ -46,8 +46,9 @@ Requires Go 1.25.1 or later.
 ```bash
 git clone https://github.com/lucasmodrich/git-worktree-manager.git
 cd git-worktree-manager
-make build          # produces ./gwtm
-make install        # copies to $GOPATH/bin or $HOME/.git-worktree-manager/
+go build -o gwtm ./cmd/git-worktree-manager
+# Move the binary somewhere on your PATH, e.g.:
+sudo mv gwtm /usr/local/bin/
 ```
 
 ### Self-Upgrade
