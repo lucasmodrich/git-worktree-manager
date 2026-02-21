@@ -1,13 +1,11 @@
 package commands
 
 import (
+	"path/filepath"
+
 	"github.com/lucasmodrich/git-worktree-manager/internal/git"
 	"github.com/lucasmodrich/git-worktree-manager/internal/ui"
 	"github.com/spf13/cobra"
-)
-
-var (
-	removeRemote bool
 )
 
 var removeCmd = &cobra.Command{
@@ -19,12 +17,13 @@ var removeCmd = &cobra.Command{
 }
 
 func init() {
-	removeCmd.Flags().BoolVar(&removeRemote, "remote", false, "Also delete remote branch")
+	removeCmd.Flags().Bool("remote", false, "Also delete remote branch")
 	rootCmd.AddCommand(removeCmd)
 }
 
 func runRemove(cmd *cobra.Command, args []string) {
 	branchName := args[0]
+	removeRemote, _ := cmd.Flags().GetBool("remote")
 
 	root, err := findWorktreeRoot()
 	if err != nil {
@@ -44,8 +43,9 @@ func runRemove(cmd *cobra.Command, args []string) {
 		return
 	}
 
+	worktreePath := filepath.Join(root, branchName)
 	ui.PrintStatus("🗑", "Removing worktree '"+branchName+"'")
-	if err := client.WorktreeRemove(branchName); err != nil {
+	if err := client.WorktreeRemove(worktreePath); err != nil {
 		ui.PrintError(err, "Use 'gwtm list' to see available worktrees")
 		return
 	}

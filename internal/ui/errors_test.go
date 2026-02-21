@@ -1,7 +1,10 @@
 package ui
 
 import (
+	"bytes"
 	"errors"
+	"io"
+	"os"
 	"strings"
 	"testing"
 )
@@ -47,22 +50,27 @@ func TestFormatError(t *testing.T) {
 }
 
 func TestPrintError(t *testing.T) {
-	tests := []struct {
-		name     string
-		err      error
-		guidance string
-	}{
-		{
-			name:     "print formatted error",
-			err:      errors.New("test error"),
-			guidance: "test guidance",
-		},
+	// Capture stderr via a pipe
+	r, w, err := os.Pipe()
+	if err != nil {
+		t.Fatalf("failed to create pipe: %v", err)
 	}
+	old := os.Stderr
+	os.Stderr = w
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			// Just ensure it doesn't panic
-			PrintError(tt.err, tt.guidance)
-		})
+	PrintError(errors.New("test error"), "test guidance")
+
+	w.Close()
+	os.Stderr = old
+
+	var buf bytes.Buffer
+	io.Copy(&buf, r) //nolint:errcheck
+	out := buf.String()
+
+	if !strings.Contains(out, "test error") {
+		t.Errorf("PrintError() stderr = %q, want to contain %q", out, "test error")
+	}
+	if !strings.Contains(out, "test guidance") {
+		t.Errorf("PrintError() stderr = %q, want to contain %q", out, "test guidance")
 	}
 }

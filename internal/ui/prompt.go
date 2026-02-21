@@ -3,16 +3,16 @@ package ui
 import (
 	"bufio"
 	"fmt"
-	"os"
+	"io"
 	"strings"
 )
 
-// PromptYesNo prompts the user with a yes/no question
-// Returns true if user answers yes, false if no
-func PromptYesNo(question string) (bool, error) {
+// PromptYesNo prompts the user with a yes/no question, reading the answer from r.
+// Returns true if the user answers yes, false if no or on EOF.
+func PromptYesNo(question string, r io.Reader) (bool, error) {
 	fmt.Printf("%s [y/N]: ", question)
 
-	scanner := bufio.NewScanner(os.Stdin)
+	scanner := bufio.NewScanner(r)
 	if !scanner.Scan() {
 		if err := scanner.Err(); err != nil {
 			return false, fmt.Errorf("failed to read input: %w", err)

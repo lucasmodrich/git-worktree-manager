@@ -83,24 +83,49 @@ func TestParseYesNo(t *testing.T) {
 }
 
 func TestPromptYesNo(t *testing.T) {
-	// Note: This test verifies the function signature and basic functionality
-	// Actual interactive testing would require mocking stdin
 	tests := []struct {
-		name     string
-		question string
+		name    string
+		input   string
+		want    bool
+		wantErr bool
 	}{
 		{
-			name:     "basic prompt",
-			question: "Continue?",
+			name:  "yes answer",
+			input: "y\n",
+			want:  true,
+		},
+		{
+			name:  "no answer",
+			input: "n\n",
+			want:  false,
+		},
+		{
+			name:  "empty input defaults to no",
+			input: "\n",
+			want:  false,
+		},
+		{
+			name:  "EOF defaults to no",
+			input: "",
+			want:  false,
+		},
+		{
+			name:    "invalid input returns error",
+			input:   "maybe\n",
+			want:    false,
+			wantErr: true,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			// Verify the question format would include [y/N]
-			expectedFormat := tt.question + " [y/N]"
-			if !strings.Contains(expectedFormat, "[y/N]") {
-				t.Errorf("Prompt format missing [y/N] suffix")
+			got, err := PromptYesNo("Continue?", strings.NewReader(tt.input))
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PromptYesNo() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("PromptYesNo() = %v, want %v", got, tt.want)
 			}
 		})
 	}

@@ -25,7 +25,7 @@ func runUpgrade(cmd *cobra.Command, args []string) {
 	// Check for newer version on GitHub
 	ui.PrintStatus("🔍", "Checking for newer version on GitHub...")
 
-	latestVersion, err := fetchLatestVersion()
+	latestVersion, err := version.FetchLatestVersion()
 	if err != nil {
 		ui.PrintError(err, "Could not check for updates. Try again later.")
 		return
@@ -48,7 +48,10 @@ func runUpgrade(cmd *cobra.Command, args []string) {
 	// Perform upgrade
 	ui.PrintStatus("⬇️", fmt.Sprintf("Upgrading to version %s...", latestVersion))
 
-	if err := version.UpgradeToLatest(currentVersion, latestVersion); err != nil {
+	infoFn := func(msg string) { ui.PrintStatus("✓", msg) }
+	warnFn := func(msg string) { ui.PrintStatus("⚠️", "Warning: "+msg) }
+
+	if err := version.UpgradeToLatest(currentVersion, latestVersion, infoFn, warnFn); err != nil {
 		ui.PrintError(err, "Upgrade failed. Try again or download manually from GitHub releases")
 		return
 	}

@@ -14,8 +14,9 @@ import (
 	"github.com/lucasmodrich/git-worktree-manager/internal/config"
 )
 
-// UpgradeToLatest downloads and installs the latest version, printing progress as it goes.
-func UpgradeToLatest(currentVersion, latestVersion string) error {
+// UpgradeToLatest downloads and installs the latest version.
+// Progress is reported via info (normal messages) and warn (non-fatal warnings).
+func UpgradeToLatest(currentVersion, latestVersion string, info, warn func(string)) error {
 	current, err := ParseVersion(currentVersion)
 	if err != nil {
 		return fmt.Errorf("invalid current version: %w", err)
@@ -39,7 +40,7 @@ func UpgradeToLatest(currentVersion, latestVersion string) error {
 		return fmt.Errorf("failed to download binary: %w", err)
 	}
 	defer os.Remove(tempBinary)
-	fmt.Println("✓ Binary downloaded")
+	info("Binary downloaded")
 
 	// Download and verify checksum
 	checksumURL := fmt.Sprintf("https://github.com/lucasmodrich/git-worktree-manager/releases/download/v%s/checksums.txt", latestVersion)
@@ -52,7 +53,7 @@ func UpgradeToLatest(currentVersion, latestVersion string) error {
 	if err := verifyChecksum(tempBinary, checksumFile, binaryName); err != nil {
 		return fmt.Errorf("checksum verification failed: %w", err)
 	}
-	fmt.Println("✓ Checksum verified")
+	info("Checksum verified")
 
 	// Ensure install directory exists
 	installDir := config.GetInstallDir()
@@ -65,9 +66,9 @@ func UpgradeToLatest(currentVersion, latestVersion string) error {
 		url := fmt.Sprintf("https://raw.githubusercontent.com/lucasmodrich/git-worktree-manager/refs/tags/v%s/%s", latestVersion, file)
 		dest := filepath.Join(installDir, file)
 		if err := downloadFile(url, dest); err != nil {
-			fmt.Printf("Warning: failed to download %s: %v\n", file, err)
+			warn(fmt.Sprintf("failed to download %s: %v", file, err))
 		} else {
-			fmt.Printf("✓ %s downloaded\n", file)
+			info(fmt.Sprintf("%s downloaded", file))
 		}
 	}
 
