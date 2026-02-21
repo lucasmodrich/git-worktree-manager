@@ -253,36 +253,27 @@ Releases are fully automated — you do not need to do anything manually.
 
 ### How it works
 
+A single workflow (`.github/workflows/goreleaser.yml`) runs on every push to `main`:
+
 ```
 Merge to main
      │
      ▼
-semantic-release (release.yml)
-  • Analyses commits since last release
-  • Bumps version (patch / minor / major)
-  • Updates CHANGELOG.md and VERSION
-  • Commits those files [skip ci]
-  • Creates and pushes a git tag (e.g. v2.1.0)
+github-tag-action
+  • Reads conventional commits since the last tag
+  • Determines semver bump (patch / minor / major)
+  • If no releasable commits: stops here (no release)
+  • Creates and pushes the new tag (e.g. v2.1.0)
      │
-     ▼ (tag push triggers)
-GoReleaser (goreleaser.yml)
+     ▼ (same workflow, next step)
+GoReleaser
   • Runs go mod tidy and go test ./...
   • Compiles binaries for Linux, macOS (Intel + Apple Silicon), Windows
   • Creates the GitHub release with generated release notes
   • Attaches binaries and checksums.txt
 ```
 
-### Ownership split
-
-| Responsibility | Tool |
-|---|---|
-| Determine next version | semantic-release |
-| Update `CHANGELOG.md` | semantic-release |
-| Update `VERSION` file | semantic-release |
-| Create git tag | semantic-release |
-| Create GitHub release | **GoReleaser** |
-| Build and upload binaries | **GoReleaser** |
-| Generate release notes body | **GoReleaser** |
+Everything runs in a single workflow — no cross-workflow token issues, no Node.js, no separate release pipeline.
 
 ### Version bump rules
 
@@ -295,6 +286,6 @@ Commit type determines the version bump — this is why the Conventional Commits
 | `feat!` / `BREAKING CHANGE` | Major bump (`1.2.0` → `2.0.0`) |
 | `docs`, `chore`, `test`, `refactor` | No release triggered |
 
-### Pre-releases
+### Release history
 
-Pushing to the `dev` branch produces a pre-release with the `-beta` suffix (e.g. `v2.1.0-beta.1`). These are tagged and released the same way as production releases.
+Full release notes for every version are on the [GitHub Releases page](https://github.com/lucasmodrich/git-worktree-manager/releases). `CHANGELOG.md` in the repository is a historical record up to v2.0.0.
