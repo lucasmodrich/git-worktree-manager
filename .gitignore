@@ -22,5 +22,9 @@ node_modules/
 .DS_Store
 Thumbs.db
 
+# Windows build resources (generated)
+cmd/git-worktree-manager/versioninfo.json
+cmd/git-worktree-manager/resource_windows.syso
+
 # Local Claude Settings (machine-specific; skills are tracked separately)
 .claude/settings.local.json
