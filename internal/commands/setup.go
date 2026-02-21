@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"strings"
 
 	"github.com/lucasmodrich/git-worktree-manager/internal/git"
 	"github.com/lucasmodrich/git-worktree-manager/internal/ui"
@@ -28,7 +29,7 @@ func runSetup(cmd *cobra.Command, args []string) {
 
 	url, repoName, err := parseRepoSpec(repoSpec)
 	if err != nil {
-		ui.PrintError(err, "Examples: acme/webapp, user123/my-project, my.org/tool.name")
+		ui.PrintError(err, "Examples: acme/webapp, git@gitlab.com:org/repo.git, https://github.com/org/repo")
 		return
 	}
 
@@ -49,7 +50,11 @@ func runSetup(cmd *cobra.Command, args []string) {
 		return
 	}
 
-	if GetDryRun() {
+	// All git operations use repoDir as the working directory
+	client := git.NewClient(repoDir)
+	client.DryRun = GetDryRun()
+
+	if client.DryRun {
 		ui.PrintDryRun("Would create project root: " + repoDir)
 		ui.PrintDryRun("Would clone bare repository into .bare")
 		ui.PrintDryRun("Would create .git file pointing to .bare")
@@ -73,9 +78,6 @@ func runSetup(cmd *cobra.Command, args []string) {
 			os.RemoveAll(repoDir)
 		}
 	}()
-
-	// All git operations use repoDir as the working directory
-	client := git.NewClient(repoDir)
 
 	bareDir := filepath.Join(repoDir, ".bare")
 
@@ -127,27 +129,52 @@ func runSetup(cmd *cobra.Command, args []string) {
 	ui.PrintStatus("✅", fmt.Sprintf("Setup complete! cd %s/%s to start working.", repoName, defaultBranch))
 }
 
-// parseRepoSpec parses org/repo or git@github.com:org/repo.git format.
-// Org and repo names may contain letters, digits, hyphens, underscores, and dots.
+// parseRepoSpec accepts the following formats and returns the clone URL and repo name:
+//   - org/repo            → expanded to git@github.com:org/repo.git
+//   - git@<host>:<path>   → used as-is (any SSH host)
+//   - https?://<host>/... → used as-is
+//
+// The repo name is always derived from the last path component (without .git suffix).
 func parseRepoSpec(spec string) (url, repoName string, err error) {
-	// Match org/repo format
+	// HTTPS or HTTP URL
+	if strings.Contains(spec, "://") {
+		name := repoNameFromPath(strings.TrimSuffix(spec, ".git"), "/")
+		if name == "" {
+			return "", "", fmt.Errorf("cannot determine repository name from URL %q", spec)
+		}
+		return spec, name, nil
+	}
+
+	// Generic SSH URL: git@<host>:<path>[.git]
+	if strings.HasPrefix(spec, "git@") {
+		colonIdx := strings.Index(spec, ":")
+		if colonIdx == -1 {
+			return "", "", fmt.Errorf("invalid SSH URL %q: missing ':'", spec)
+		}
+		name := repoNameFromPath(strings.TrimSuffix(spec[colonIdx+1:], ".git"), "/")
+		if name == "" {
+			return "", "", fmt.Errorf("cannot determine repository name from SSH URL %q", spec)
+		}
+		return spec, name, nil
+	}
+
+	// org/repo shorthand — expand to GitHub SSH
 	orgRepoRegex := regexp.MustCompile(`^([a-zA-Z0-9_.-]+)/([a-zA-Z0-9_.-]+)$`)
 	if matches := orgRepoRegex.FindStringSubmatch(spec); matches != nil {
-		org := matches[1]
-		repo := matches[2]
-		url = fmt.Sprintf("git@github.com:%s/%s.git", org, repo)
-		repoName = repo
-		return url, repoName, nil
+		org, repo := matches[1], matches[2]
+		return fmt.Sprintf("git@github.com:%s/%s.git", org, repo), repo, nil
 	}
 
-	// Match git@github.com:org/repo.git format
-	sshRegex := regexp.MustCompile(`^git@github\.com:([a-zA-Z0-9_.-]+)/([a-zA-Z0-9_.-]+)\.git$`)
-	if matches := sshRegex.FindStringSubmatch(spec); matches != nil {
-		repo := matches[2]
-		url = spec
-		repoName = repo
-		return url, repoName, nil
-	}
+	return "", "", fmt.Errorf("invalid repository format %q\nExamples: org/repo, git@github.com:org/repo.git, https://github.com/org/repo", spec)
+}
 
-	return "", "", fmt.Errorf("invalid repository format. Expected: org/repo or git@github.com:org/repo.git")
+// repoNameFromPath returns the last non-empty segment of a slash-separated path.
+func repoNameFromPath(path, sep string) string {
+	parts := strings.Split(path, sep)
+	for i := len(parts) - 1; i >= 0; i-- {
+		if parts[i] != "" {
+			return parts[i]
+		}
+	}
+	return ""
 }

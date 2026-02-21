@@ -2,6 +2,7 @@ package commands
 
 import (
 	"fmt"
+	"os"
 	"path/filepath"
 	"strings"
 
@@ -76,7 +77,7 @@ func runBranch(cmd *cobra.Command, args []string) {
 		if !branchExistsRemote {
 			ui.PrintStatus("⚠️", "Branch '"+branchName+"' not found on remote")
 
-			answer, err := ui.PromptYesNo("☁️  Push branch to remote?")
+			answer, err := ui.PromptYesNo("☁️  Push branch to remote?", os.Stdin)
 			if err != nil {
 				ui.PrintError(err, "Invalid input")
 				return
@@ -88,7 +89,7 @@ func runBranch(cmd *cobra.Command, args []string) {
 	} else if branchExistsRemote {
 		ui.PrintStatus("☁️", "Branch '"+branchName+"' exists on remote but not locally")
 
-		answer, err := ui.PromptYesNo("📥 Fetch and create worktree from remote branch?")
+		answer, err := ui.PromptYesNo("📥 Fetch and create worktree from remote branch?", os.Stdin)
 		if err != nil {
 			ui.PrintError(err, "Invalid input")
 			return
