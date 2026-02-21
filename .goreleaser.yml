@@ -35,7 +35,7 @@ archives:
       {{- else }}{{ .Arch }}{{ end }}
 
 checksum:
-  name_template: 'checksums.txt'
+  name_template: "checksums.txt"
 
 snapshot:
   version_template: "{{ .Tag }}-next"
@@ -44,9 +44,9 @@ changelog:
   sort: asc
   filters:
     exclude:
-      - '^docs:'
-      - '^test:'
-      - '^chore:'
+      - "^docs:"
+      - "^test:"
+      - "^chore:"
 
 release:
   github:
@@ -54,6 +54,5 @@ release:
     name: git-worktree-manager
   extra_files:
     - glob: ./README.md
-      glob: ./CHANGELOG.md
     - glob: ./VERSION
     - glob: ./LICENSE
