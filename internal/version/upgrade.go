@@ -62,7 +62,7 @@ func UpgradeToLatest(currentVersion, latestVersion string, info, warn func(strin
 	}
 
 	// Download auxiliary files from the release tag (not main branch)
-	for _, file := range []string{"README.md", "VERSION", "LICENSE"} {
+	for _, file := range []string{"README.md", "LICENSE"} {
 		url := fmt.Sprintf("https://raw.githubusercontent.com/lucasmodrich/git-worktree-manager/refs/tags/v%s/%s", latestVersion, file)
 		dest := filepath.Join(installDir, file)
 		if err := downloadFile(url, dest); err != nil {
