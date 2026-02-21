@@ -86,9 +86,27 @@ goreleaser release --snapshot --clean
 
 ## Release Configuration
 
-Releases are fully automated via a single workflow (`.github/workflows/goreleaser.yml`) that triggers on every push to `main`:
+A single workflow (`.github/workflows/goreleaser.yml`) handles everything. Two triggers:
 
-1. `mathieudutour/github-tag-action` analyses commits since the last tag and determines the next semver version from conventional commit types. No tag is created for `docs:`, `chore:`, `test:`, or `refactor:` commits.
-2. If a new tag is warranted, GoReleaser compiles binaries for Linux, macOS (Intel + Apple Silicon), and Windows, then creates the GitHub release with release notes and uploads all artifacts.
+**Automatic — push to `main`:**
+1. `mathieudutour/github-tag-action` analyses commits since the last tag and determines the next semver bump. No tag is created for `docs:`, `chore:`, `test:`, or `refactor:` commits — the workflow exits early.
+2. If a releasable commit is found, GoReleaser compiles binaries for Linux, macOS (Intel + Apple Silicon), and Windows, creates the GitHub release, and uploads all artifacts.
+
+**Manual — `workflow_dispatch`:**
+Go to **Actions → Release → Run workflow**, enter an existing tag (e.g. `v2.1.0`). The tag step is skipped and GoReleaser runs directly against that tag. Use this to republish a release if the automated pipeline fails.
+
+### Version bump rules
+
+| Commit type | Effect |
+|---|---|
+| `feat` | Minor (`1.2.0` → `1.3.0`) |
+| `fix`, `perf` | Patch (`1.2.0` → `1.2.1`) |
+| `feat!` / `BREAKING CHANGE` | Major (`1.2.0` → `2.0.0`) |
+| `docs`, `chore`, `test`, `refactor` | No release |
+
+### Validate GoReleaser config locally
+```bash
+goreleaser check
+```
 
 Canonical release history is on the [GitHub Releases page](https://github.com/lucasmodrich/git-worktree-manager/releases). `CHANGELOG.md` is a historical record up to v2.0.0.
