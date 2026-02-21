@@ -24,7 +24,7 @@ Thumbs.db
 
 # Windows build resources (generated)
 cmd/git-worktree-manager/versioninfo.json
-cmd/git-worktree-manager/resource_windows.syso
+cmd/git-worktree-manager/resource_windows_amd64.syso
 
 # Local Claude Settings (machine-specific; skills are tracked separately)
 .claude/settings.local.json

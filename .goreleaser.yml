@@ -22,7 +22,7 @@ builds:
     hooks:
       pre:
         - cmd: go run ./cmd/git-worktree-manager/gen_versioninfo.go {{ .Version }}
-        - cmd: goversioninfo -64 -o cmd/git-worktree-manager/resource_windows.syso cmd/git-worktree-manager/versioninfo.json
+        - cmd: goversioninfo -64 -o cmd/git-worktree-manager/resource_windows_amd64.syso cmd/git-worktree-manager/versioninfo.json
     ldflags:
       - -s -w
       - -X main.version={{.Version}}
