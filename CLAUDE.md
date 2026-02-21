@@ -86,8 +86,9 @@ goreleaser release --snapshot --clean
 
 ## Release Configuration
 
-Releases are fully automated:
-1. **semantic-release** (`release.config.js`) runs on merge to `main` — analyses commits, bumps version, updates `CHANGELOG.md` and `VERSION`, creates a Git tag
-2. **GoReleaser** (`.github/workflows/goreleaser.yml`) triggers on the new tag — compiles binaries for Linux, macOS (Intel + Apple Silicon), and Windows
+Releases are fully automated via a single workflow (`.github/workflows/goreleaser.yml`) that triggers on every push to `main`:
 
-The `VERSION` file and `CHANGELOG.md` are managed by CI/CD. Do not edit them manually.
+1. `mathieudutour/github-tag-action` analyses commits since the last tag and determines the next semver version from conventional commit types. No tag is created for `docs:`, `chore:`, `test:`, or `refactor:` commits.
+2. If a new tag is warranted, GoReleaser compiles binaries for Linux, macOS (Intel + Apple Silicon), and Windows, then creates the GitHub release with release notes and uploads all artifacts.
+
+Canonical release history is on the [GitHub Releases page](https://github.com/lucasmodrich/git-worktree-manager/releases). `CHANGELOG.md` is a historical record up to v2.0.0.

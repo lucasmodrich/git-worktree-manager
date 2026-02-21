@@ -1,3 +1,11 @@
+# Changelog
+
+> **Note:** From v2.0.0 onwards, release notes are published on the
+> [GitHub Releases page](https://github.com/lucasmodrich/git-worktree-manager/releases).
+> This file is a historical record of changes up to and including v2.0.0.
+
+---
+
 # [2.0.0](https://github.com/lucasmodrich/git-worktree-manager/compare/v1.3.0...v2.0.0) (2026-02-21)
 
 
