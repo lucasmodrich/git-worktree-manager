@@ -54,5 +54,6 @@ release:
     name: git-worktree-manager
   extra_files:
     - glob: ./README.md
+      glob: ./CHANGELOG.md
     - glob: ./VERSION
     - glob: ./LICENSE
