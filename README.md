@@ -1,5 +1,8 @@
 # Git Worktree Manager (`gwtm`)
 
+## ARCHIVED
+I have archived this project as I now use [WorkTrunk](https://github.com/max-sixty/worktrunk) which addresses most of my needs and more.
+
 ## 📌 Overview
 
 `gwtm` is a CLI tool for managing Git repositories using a **bare clone + worktree** workflow. It removes the friction of multi-branch development by giving each branch its own dedicated working directory — no stashing, no switching, no detached HEADs.
